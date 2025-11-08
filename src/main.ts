@@ -317,7 +317,7 @@ async function start(): Promise<void> {
   });
 
   // Start server
-  return new Promise<void>((resolve) => {
+  return new Promise<void>(() => {
     app.listen(PORT, () => {
       log.info(`MCP server listening on http://localhost:${PORT}/mcp`);
       log.info(`Health check available at http://localhost:${PORT}/`);
@@ -325,7 +325,8 @@ async function start(): Promise<void> {
       if (ENABLE_NLP) {
         log.info("NLP enhancement is ENABLED");
       }
-      resolve();
+      log.info("Server running indefinitely (Standby mode)");
+      // Don't resolve - keep running forever
     });
   });
 }
