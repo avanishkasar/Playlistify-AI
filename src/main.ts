@@ -104,7 +104,7 @@ async function start(): Promise<void> {
   app.get("/api", (_req: Request, res: Response) => {
     res.json({
       status: "healthy",
-      service: "Playlistify AI",
+      service: "Playlistify",
       version: "0.1.0",
       endpoints: {
         mcp: "/mcp",
@@ -119,7 +119,7 @@ async function start(): Promise<void> {
   app.get("/health", (_req: Request, res: Response) => {
     res.json({
       status: "healthy",
-      service: "Playlistify AI",
+      service: "Playlistify",
       version: "0.1.0",
     });
   });

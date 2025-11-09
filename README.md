@@ -1,48 +1,80 @@
-# 🎵 Playlistify AI# Apify Spotify MCP Actor
+Playlistify# 🎵 Playlistify AI# Apify Spotify MCP Actor
 
-**AI-powered Spotify playlist creator with natural language understanding**A production-ready Model Context Protocol (MCP) server for Spotify, deployable on the Apify platform. This Actor exposes an HTTP endpoint that AI clients can use to search tracks, get recommendations, and create playlists via natural language.
+AI-powered Spotify playlist creator.**AI-powered Spotify playlist creator with natural language understanding**A production-ready Model Context Protocol (MCP) server for Spotify, deployable on the Apify platform. This Actor exposes an HTTP endpoint that AI clients can use to search tracks, get recommendations, and create playlists via natural language.
 
-Create unique, personalized Spotify playlists using natural language descriptions. Powered by Apify Actor platform and Spotify Web API.## 🎯 Features
+FeaturesCreate unique, personalized Spotify playlists using natural language descriptions. Powered by Apify Actor platform and Spotify Web API.## 🎯 Features
 
----- **MCP-Compatible HTTP Server** - Exposes `/mcp` endpoint for AI tool calls
+- Search Spotify tracks---- **MCP-Compatible HTTP Server** - Exposes `/mcp` endpoint for AI tool calls
 
-- **Three Core Tools**:
+- Get AI recommendations
+
+- Create playlists with natural language- **Three Core Tools**:
+
+- Fast caching and rate limiting
 
 ## ✨ Features - `search-track` - Search Spotify catalog by keyword
 
+Setup
+
 - `recommend` - Get personalized recommendations using seeds
 
-- **🔍 Smart Search**: Search Spotify's catalog with intelligent filtering - `create-playlist` - Create playlists and add tracks
+1. Get Spotify credentials from https://developer.spotify.com/dashboard
+
+2. Add Client ID, Client Secret, and Refresh Token to Apify input- **🔍 Smart Search**: Search Spotify's catalog with intelligent filtering - `create-playlist` - Create playlists and add tracks
+
+3. Run the Actor
 
 - **🎯 AI Recommendations**: Get personalized track recommendations- **Advanced Capabilities**:
 
+API Endpoints
+
 - **🎨 Natural Language**: Describe your mood or activity in plain English - ✅ Automatic Spotify access token refresh
 
-- **⚡ Lightning Fast**: Optimized caching and rate limiting - ✅ Response caching (LRU cache with TTL)
+GET / - Landing page
 
-- **✅ Auto-Create Playlists**: Instantly save playlists to your Spotify account - ✅ NLP enhancement for natural language playlist descriptions
+GET /health - Health check- **⚡ Lightning Fast**: Optimized caching and rate limiting - ✅ Response caching (LRU cache with TTL)
 
-  - ✅ Request validation and error handling
+GET /stats - Statistics
 
---- - ✅ Billing integration with `Actor.charge()`
+POST /mcp - Main API endpoint- **✅ Auto-Create Playlists**: Instantly save playlists to your Spotify account - ✅ NLP enhancement for natural language playlist descriptions
 
-- ✅ Structured logging with `log.info()`
+Usage - ✅ Request validation and error handling
 
-## 🚀 Quick Start - ✅ TypeScript with full type safety
+Search tracks:--- - ✅ Billing integration with `Actor.charge()`
 
-### Option 1: Use on Apify Platform (Recommended)## 🚀 Quick Start
+{
 
-1. **Visit**: [https://console.apify.com/actors/wealthy_rhinoceros~playlistify-ai](https://console.apify.com/actors/wealthy_rhinoceros~playlistify-ai)### Prerequisites
+"tool": "search-track",- ✅ Structured logging with `log.info()`
 
-2. **Run**: Click "Try for free" or "Start"
+"input": {"query": "happy", "limit": 10}
 
-3. **Access**: Use the Standby URL for API access1. **Spotify Developer Account**
+}## 🚀 Quick Start - ✅ TypeScript with full type safety
 
-   - Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+Get recommendations:### Option 1: Use on Apify Platform (Recommended)## 🚀 Quick Start
 
-### Option 2: Run Locally - Note your Client ID and Client Secret
+{
 
-- Get a refresh token (see "Getting Refresh Token" below)
+"tool": "recommend",1. **Visit**: [https://console.apify.com/actors/wealthy_rhinoceros~playlistify-ai](https://console.apify.com/actors/wealthy_rhinoceros~playlistify-ai)### Prerequisites
+
+"input": {"nlpIntent": "workout", "limit": 20}
+
+}2. **Run**: Click "Try for free" or "Start"
+
+Create playlist:3. **Access**: Use the Standby URL for API access1. **Spotify Developer Account**
+
+{
+
+"tool": "create-playlist", - Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+
+"input": {
+
+    "name": "My Playlist",### Option 2: Run Locally - Note your Client ID and Client Secret
+
+    "trackUris": ["spotify:track:..."]
+
+}- Get a refresh token (see "Getting Refresh Token" below)
+
+}
 
 ````bash
 
