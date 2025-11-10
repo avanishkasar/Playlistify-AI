@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playlistify AI - Create Your Playlist</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #1db954 0%, #191414 100%);
+      min-height: 100vh;
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .tagline {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 15px;
+      font-size: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      color: white;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #1db954;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+
+    .slider-group {
+      margin-bottom: 25px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.3);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1db954;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1db954;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: #1db954;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1ed760;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(29, 185, 84, 0.4);
+    }
+
+    .btn-primary:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #1db954;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result {
+      display: none;
+      margin-top: 30px;
+      padding: 25px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result.success {
+      border: 2px solid #1db954;
+    }
+
+    .result.error {
+      border: 2px solid #ff4444;
+    }
+
+    .result h3 {
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    .playlist-link {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 12px 30px;
+      background: #1db954;
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .playlist-link:hover {
+      background: #1ed760;
+      transform: scale(1.05);
+    }
+
+    .examples {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    .examples h4 {
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .example-tag {
+      display: inline-block;
+      padding: 5px 12px;
+      margin: 5px;
+      background: rgba(29, 185, 84, 0.3);
+      border-radius: 15px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .example-tag:hover {
+      background: rgba(29, 185, 84, 0.5);
+    }
+
+    .track-list {
+      margin-top: 15px;
+    }
+
+    .track-item {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-bottom: 8px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .track-info {
+      flex: 1;
+    }
+
+    .track-name {
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+
+    .track-artist {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🎵 Playlistify AI</div>
+      <div class="tagline">Your mood in words. Your music in seconds.</div>
+    </div>
+
+    <div class="card">
+      <form id="playlistForm">
+        <div class="form-group">
+          <label for="prompt">🎨 Describe Your Playlist</label>
+          <textarea 
+            id="prompt" 
+            name="prompt" 
+            placeholder="energetic workout music, chill lo-fi for studying, upbeat indie for morning coffee..."
+            required
+          ></textarea>
+          <div class="examples">
+            <h4>💡 Try these:</h4>
+            <span class="example-tag" onclick="useExample('energetic workout music')">energetic workout music</span>
+            <span class="example-tag" onclick="useExample('chill lo-fi for studying')">chill lo-fi for studying</span>
+            <span class="example-tag" onclick="useExample('upbeat indie for morning coffee')">upbeat indie for morning coffee</span>
+            <span class="example-tag" onclick="useExample('sad songs for rainy days')">sad songs for rainy days</span>
+            <span class="example-tag" onclick="useExample('party dance hits')">party dance hits</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="playlistName">📝 Playlist Name (optional)</label>
+          <input 
+            type="text" 
+            id="playlistName" 
+            name="playlistName" 
+            placeholder="Leave empty to use your description"
+          >
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label">
+            <label for="trackCount">🎵 Number of Tracks</label>
+            <span id="trackCountValue">20</span>
+          </div>
+          <input 
+            type="range" 
+            id="trackCount" 
+            name="trackCount" 
+            min="10" 
+            max="50" 
+            value="20" 
+            oninput="document.getElementById('trackCountValue').textContent = this.value"
+          >
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">
+          ✨ Create My Playlist
+        </button>
+      </form>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Creating your perfect playlist...</p>
+        <p style="font-size: 0.9rem; opacity: 0.7;">This may take 10-15 seconds</p>
+      </div>
+
+      <div class="result" id="result">
+        <h3 id="resultTitle"></h3>
+        <p id="resultMessage"></p>
+        <div id="trackList" class="track-list"></div>
+        <div id="resultActions"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    function useExample(text) {
+      document.getElementById('prompt').value = text;
+    }
+
+    document.getElementById('playlistForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const prompt = document.getElementById('prompt').value.trim();
+      const playlistName = document.getElementById('playlistName').value.trim() || prompt;
+      const trackCount = parseInt(document.getElementById('trackCount').value);
+
+      // Show loading
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('loading').classList.add('show');
+      document.getElementById('result').classList.remove('show');
+
+      try {
+        // Step 1: Search for tracks based on prompt
+        console.log('Step 1: Searching for tracks...');
+        const searchResponse = await fetch(`${API_BASE}/mcp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tool: 'search-track',
+            input: {
+              query: prompt,
+              limit: trackCount
+            }
+          })
+        });
+
+        const searchData = await searchResponse.json();
+
+        if (searchData.status === 'error') {
+          throw new Error(searchData.message);
+        }
+
+        const tracks = searchData.data.tracks;
+        if (!tracks || tracks.length === 0) {
+          throw new Error('No tracks found for your prompt');
+        }
+
+        console.log(`Found ${tracks.length} tracks`);
+
+        // Step 2: Create playlist with found tracks
+        console.log('Step 2: Creating playlist...');
+        const trackUris = tracks.map(track => track.uri);
+
+        const createResponse = await fetch(`${API_BASE}/mcp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tool: 'create-playlist',
+            input: {
+              name: playlistName,
+              description: `Created by Playlistify AI: ${prompt}`,
+              trackUris: trackUris,
+              isPublic: true
+            }
+          })
+        });
+
+        const createData = await createResponse.json();
+
+        if (createData.status === 'error') {
+          throw new Error(createData.message);
+        }
+
+        // Success!
+        displaySuccess(createData.data.playlist, tracks);
+
+      } catch (error) {
+        displayError(error.message);
+      } finally {
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('loading').classList.remove('show');
+      }
+    });
+
+    function displaySuccess(playlist, tracks) {
+      const result = document.getElementById('result');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultMessage = document.getElementById('resultMessage');
+      const trackList = document.getElementById('trackList');
+      const resultActions = document.getElementById('resultActions');
+
+      result.className = 'result success show';
+      resultTitle.textContent = '🎉 Playlist Created!';
+      resultMessage.innerHTML = `
+        <strong>${playlist.name}</strong><br>
+        ${playlist.trackCount} tracks added to your Spotify account
+      `;
+
+      // Display track list
+      trackList.innerHTML = '<h4 style="margin-bottom: 10px;">📋 Tracks:</h4>';
+      tracks.slice(0, 5).forEach(track => {
+        trackList.innerHTML += `
+          <div class="track-item">
+            <div class="track-info">
+              <div class="track-name">${track.name}</div>
+              <div class="track-artist">${track.artists.map(a => a.name).join(', ')}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      if (tracks.length > 5) {
+        trackList.innerHTML += `<p style="text-align: center; opacity: 0.7; margin-top: 10px;">... and ${tracks.length - 5} more tracks</p>`;
+      }
+
+      resultActions.innerHTML = `
+        <a href="${playlist.external_urls.spotify}" target="_blank" class="playlist-link">
+          🎧 Open in Spotify
+        </a>
+      `;
+    }
+
+    function displayError(message) {
+      const result = document.getElementById('result');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultMessage = document.getElementById('resultMessage');
+      const trackList = document.getElementById('trackList');
+      const resultActions = document.getElementById('resultActions');
+
+      result.className = 'result error show';
+      resultTitle.textContent = '❌ Oops!';
+      resultMessage.textContent = message;
+      trackList.innerHTML = '';
+      resultActions.innerHTML = '';
+    }
+  </script>
+</body>
+</html>

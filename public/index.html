@@ -349,7 +349,7 @@
 
       async function checkHealth() {
         try {
-          const response = await fetch(`${API_BASE}/`);
+          const response = await fetch(`${API_BASE}/api`);
           const data = await response.json();
 
           document.getElementById("statusDot").className = "status-dot online";
@@ -402,7 +402,7 @@
 
           switch (type) {
             case "health":
-              response = await fetch(`${API_BASE}/`);
+              response = await fetch(`${API_BASE}/api`);
               data = await response.json();
               break;
 
