@@ -1,4 +1,4 @@
-PlaylistifyPlaylistify# 🎵 Playlistify AI# Apify Spotify MCP Actor
+# 🎵 Playlistify AI
 
 AI-powered Spotify playlist creatorAI-powered Spotify playlist creator.**AI-powered Spotify playlist creator with natural language understanding**A production-ready Model Context Protocol (MCP) server for Spotify, deployable on the Apify platform. This Actor exposes an HTTP endpoint that AI clients can use to search tracks, get recommendations, and create playlists via natural language.
 
