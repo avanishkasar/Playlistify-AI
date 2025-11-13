@@ -8,3 +8,5 @@ apify_storage/
 *.swp
 *.swo
 *~
+backend/node_modules/
+*/node_modules/
