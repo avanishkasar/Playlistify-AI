@@ -530,40 +530,16 @@
 
   <!-- Configuration Modal -->
   <div id="configModal" class="modal">
-    <div class="modal-content large">
+    <div class="modal-content">
       <div class="modal-header">
         <h2>Create Playlist</h2>
         <button class="close-btn" onclick="closeModal('configModal')">&times;</button>
       </div>
       <form id="configForm" onsubmit="createPlaylist(event)">
         <div class="form-group">
-          <label for="apifyUrl">Apify Actor URL</label>
-          <input type="url" id="apifyUrl" placeholder="https://your-actor.apify.com" required>
-          <div class="form-help">Your Apify Actor MCP endpoint URL</div>
-        </div>
-        
-        <div class="form-group">
-          <label for="spotifyClientId">Spotify Client ID</label>
-          <input type="text" id="spotifyClientId" placeholder="Your Client ID" required>
-          <div class="form-help">
-            Get it from <a href="https://developer.spotify.com/dashboard" target="_blank">Spotify Dashboard</a>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="spotifyClientSecret">Spotify Client Secret</label>
-          <input type="password" id="spotifyClientSecret" placeholder="Your Client Secret" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="refreshToken">Refresh Token</label>
-          <input type="text" id="refreshToken" placeholder="Your Refresh Token" required>
-          <div class="form-help">Generate using Spotify Console</div>
-        </div>
-        
-        <div class="form-group">
-          <label for="playlistDescription">Playlist Description</label>
+          <label for="playlistDescription">Describe Your Playlist</label>
           <textarea id="playlistDescription" placeholder="e.g., Energetic workout mix with rock and electronic music" required></textarea>
+          <div class="form-help">Tell us what kind of music you want</div>
         </div>
         
         <div class="form-group">
@@ -683,21 +659,13 @@
       btnText.textContent = 'Creating...';
       result.classList.remove('show');
       
-      // Get config values
-      const config = {
-        apifyUrl: document.getElementById('apifyUrl').value,
-        clientId: document.getElementById('spotifyClientId').value,
-        clientSecret: document.getElementById('spotifyClientSecret').value,
-        refreshToken: document.getElementById('refreshToken').value
-      };
-      
       const description = document.getElementById('playlistDescription').value;
       const name = document.getElementById('playlistName').value;
       const limit = parseInt(document.getElementById('trackCount').value);
       
       try {
         // Step 1: Search tracks
-        const searchRes = await fetch(`${config.apifyUrl}/mcp`, {
+        const searchRes = await fetch('/mcp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -714,7 +682,7 @@
         
         // Step 2: Create playlist
         const trackUris = tracks.map(t => t.uri);
-        const createRes = await fetch(`${config.apifyUrl}/mcp`, {
+        const createRes = await fetch('/mcp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
