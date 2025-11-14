@@ -9,10 +9,14 @@
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.17.5",
 		"@modelcontextprotocol/server-everything": "^2025.8.18",
-		"mcp-remote": "0.1.29",
+		"@types/cors": "^2.8.19",
 		"apify": "^3.4.4",
 		"body-parser": "^2.2.0",
+		"cors": "^2.8.5",
+		"dotenv": "^17.2.3",
 		"express": "^5.1.0",
+		"mcp-remote": "0.1.29",
+		"spotify-web-api-node": "^5.0.2",
 		"zod": "^3.25.76"
 	},
 	"devDependencies": {
@@ -33,6 +37,7 @@
 		"start": "npm run start:dev",
 		"start:prod": "node dist/main.js",
 		"start:dev": "tsx src/main.ts",
+		"dev": "tsx src/dev-server.ts",
 		"build": "tsc",
 		"test": "echo \"Error: oops, the Actor has no tests yet, sad!\" && exit 1"
 	},
