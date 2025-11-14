@@ -1,6 +1,6 @@
 /**
- * Simple development server for local testing
- * This bypasses Apify Actor requirements and runs a basic Express server
+ * Production-ready backend server for Spotify API
+ * Supports both local development and Railway deployment
  */
 import 'dotenv/config';
 import express from 'express';
@@ -8,11 +8,34 @@ import cors from 'cors';
 import SpotifyWebApi from 'spotify-web-api-node';
 
 const app = express();
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
-// Enable CORS for frontend
+// Enable CORS for frontend (supports multiple origins)
+const allowedOrigins = [
+    'http://localhost:8080',
+    'http://localhost:5173',
+    process.env.FRONTEND_URL,
+    /\.vercel\.app$/,
+    /\.railway\.app$/
+].filter(Boolean);
+
 app.use(cors({
-    origin: 'http://localhost:8080',
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        const isAllowed = allowedOrigins.some(allowed => {
+            if (typeof allowed === 'string') return allowed === origin;
+            if (allowed instanceof RegExp) return allowed.test(origin);
+            return false;
+        });
+        
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
