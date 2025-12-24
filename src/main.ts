@@ -49,9 +49,9 @@ app.use("/api/auth", userAuthRoutes);
 // Mount admin routes
 app.use("/api/admin", adminRoutes);
 
-// Health check
+// Root path serves landing page
 app.get("/", (_req, res) => {
-  res.sendFile("index.html", { root: "public" });
+  res.sendFile("landing.html", { root: "public" });
 });
 
 app.get("/health", (_req, res) => {
