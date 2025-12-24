@@ -47,9 +47,17 @@ export function initializeDatabase() {
       last_login DATETIME,
       spotify_connected BOOLEAN DEFAULT 0,
       spotify_id TEXT,
-      display_name TEXT
+      display_name TEXT,
+      profile_picture TEXT
     )
   `);
+  
+  // Add profile_picture column if it doesn't exist (for existing databases)
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
+  } catch (e) {
+    // Column already exists
+  }
 
   // Playlists table
   db.exec(`
@@ -407,6 +415,7 @@ export function getLeaderboard(limit: number = 20) {
       u.id,
       u.username,
       u.display_name,
+      u.profile_picture,
       COALESCE(us.total_playlists, 0) as playlist_count,
       u.created_at
     FROM users u
@@ -416,6 +425,64 @@ export function getLeaderboard(limit: number = 20) {
   `);
   
   return stmt.all(limit);
+}
+
+/**
+ * Update user profile picture
+ */
+export function updateProfilePicture(userId: number, profilePicture: string) {
+  const stmt = db.prepare(`
+    UPDATE users SET profile_picture = ? WHERE id = ?
+  `);
+  return stmt.run(profilePicture, userId);
+}
+
+/**
+ * Update user display name
+ */
+export function updateDisplayName(userId: number, displayName: string) {
+  const stmt = db.prepare(`
+    UPDATE users SET display_name = ? WHERE id = ?
+  `);
+  return stmt.run(displayName, userId);
+}
+
+/**
+ * Update username
+ */
+export function updateUsername(userId: number, username: string) {
+  try {
+    const stmt = db.prepare(`
+      UPDATE users SET username = ? WHERE id = ?
+    `);
+    stmt.run(username, userId);
+    return { success: true };
+  } catch (error: any) {
+    if (error.message.includes('UNIQUE constraint failed')) {
+      return { success: false, error: 'Username already taken' };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update user password
+ */
+export function updatePassword(userId: number, currentPassword: string, newPassword: string) {
+  const currentHash = hashPassword(currentPassword);
+  const newHash = hashPassword(newPassword);
+  
+  // Verify current password
+  const user = db.prepare(`SELECT password_hash FROM users WHERE id = ?`).get(userId) as any;
+  
+  if (!user || user.password_hash !== currentHash) {
+    return { success: false, error: 'Current password is incorrect' };
+  }
+  
+  const stmt = db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`);
+  stmt.run(newHash, userId);
+  
+  return { success: true };
 }
 
 // Initialize database on module load

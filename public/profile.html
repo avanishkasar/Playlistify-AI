@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Playlistify AI</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="pages.css">
+    <link rel="stylesheet" href="auth.css">
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 120px auto 40px;
+            padding: 0 20px;
+        }
+
+        .profile-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-avatar-section {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--spotify-green);
+            background: rgba(29, 185, 84, 0.1);
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--spotify-green);
+            border: none;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-upload-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(29, 185, 84, 0.4);
+        }
+
+        .profile-name {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-username {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--spotify-green);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--spotify-green);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--spotify-green);
+            background: rgba(29, 185, 84, 0.05);
+            box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .save-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, var(--spotify-green) 0%, #1ed760 100%);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(29, 185, 84, 0.4);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+            display: block;
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            display: block;
+        }
+
+        .avatar-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-modal.active {
+            display: flex;
+        }
+
+        .avatar-modal-content {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .avatar-modal h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .avatar-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-option:hover,
+        .avatar-option.selected {
+            border-color: var(--spotify-green);
+            transform: scale(1.1);
+        }
+
+        .custom-url-input {
+            margin-top: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .modal-btn.save {
+            background: var(--spotify-green);
+            border: none;
+            color: #000;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--spotify-green);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Gradient Background -->
+    <div class="gradient-bg">
+        <div class="gradient-overlay"></div>
+        <div class="gradient-blob blob-1"></div>
+        <div class="gradient-blob blob-2"></div>
+        <div class="gradient-blob blob-3"></div>
+        <div class="gradient-blob blob-4"></div>
+        <div class="noise-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="/" class="logo">
+            <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
+            <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="app.html" class="nav-link">Home</a>
+            <a href="about.html" class="nav-link">About</a>
+            <a href="how-it-works.html" class="nav-link">How It Works</a>
+            <a href="curated.html" class="nav-link">Curated</a>
+        </div>
+        <div class="nav-right">
+            <div id="authButtonContainer"></div>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar-section">
+                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=1DB954&color=fff&size=128" alt="Profile" class="profile-avatar">
+                    <button class="avatar-upload-btn" id="changeAvatarBtn">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                <h1 class="profile-name" id="displayNameText">Loading...</h1>
+                <p class="profile-username" id="usernameText">@username</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="playlistCount">0</div>
+                        <div class="stat-label">Playlists</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="memberSince">-</div>
+                        <div class="stat-label">Member Since</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="messageBox" class="message"></div>
+
+            <!-- Display Name Section -->
+            <div class="profile-section">
+                <h3 class="section-title"><i class="fas fa-user"></i> Display Name</h3>
+                <form id="displayNameForm">
+                    <div class="form-group">
+                        <label for="displayName">Display Name</label>
+                        <input type="text" id="displayName" placeholder="Your display name" minlength="2">
+                    </div>
+                    <button type="submit" class="save-btn">
+                        <i class="fas fa-save"></i> Update Display Name
+                    </button>
+                </form>
+            </div>
+
+            <!-- Username Section -->
+            <div class="profile-section">
+                <h3 class="section-title"><i class="fas fa-at"></i> Username</h3>
+                <form id="usernameForm">
+                    <div class="form-group">
+                        <label for="newUsername">Username</label>
+                        <input type="text" id="newUsername" placeholder="Your username" minlength="3">
+                    </div>
+                    <button type="submit" class="save-btn">
+                        <i class="fas fa-save"></i> Update Username
+                    </button>
+                </form>
+            </div>
+
+            <!-- Password Section -->
+            <div class="profile-section">
+                <h3 class="section-title"><i class="fas fa-lock"></i> Change Password</h3>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" placeholder="New password" minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm password">
+                        </div>
+                    </div>
+                    <button type="submit" class="save-btn">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                </form>
+            </div>
+
+            <a href="app.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to App
+            </a>
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div class="avatar-modal" id="avatarModal">
+        <div class="avatar-modal-content">
+            <h3><i class="fas fa-image"></i> Choose Avatar</h3>
+            <div class="avatar-options" id="avatarOptions">
+                <!-- Default avatars -->
+            </div>
+            <div class="custom-url-input">
+                <div class="form-group">
+                    <label for="customAvatarUrl">Or paste image URL</label>
+                    <input type="url" id="customAvatarUrl" placeholder="https://example.com/image.jpg">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelAvatar">Cancel</button>
+                <button class="modal-btn save" id="saveAvatar">Save Avatar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="cursor.js"></script>
+    <script src="userAuth.js"></script>
+    <script src="auth-button.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('auth_token');
+        const userData = localStorage.getItem('auth_user');
+
+        if (!token || !userData) {
+            window.location.href = '/signin.html';
+        }
+
+        let currentUser = JSON.parse(userData || '{}');
+        let selectedAvatarUrl = '';
+
+        // Default avatars
+        const defaultAvatars = [
+            'https://ui-avatars.com/api/?name=A&background=1DB954&color=fff&size=128',
+            'https://ui-avatars.com/api/?name=B&background=FF6B6B&color=fff&size=128',
+            'https://ui-avatars.com/api/?name=C&background=4ECDC4&color=fff&size=128',
+            'https://ui-avatars.com/api/?name=D&background=45B7D1&color=fff&size=128',
+            'https://ui-avatars.com/api/?name=E&background=96CEB4&color=fff&size=128',
+            'https://ui-avatars.com/api/?name=F&background=FFEAA7&color=333&size=128',
+            'https://ui-avatars.com/api/?name=G&background=DDA0DD&color=fff&size=128',
+            'https://ui-avatars.com/api/?name=H&background=FF7F50&color=fff&size=128',
+        ];
+
+        // Load user data
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateUI();
+                } else {
+                    // Session expired
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('auth_user');
+                    window.location.href = '/signin.html';
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+            }
+        }
+
+        // Update UI with user data
+        function updateUI() {
+            const avatarUrl = currentUser.profile_picture || 
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.display_name || currentUser.username)}&background=1DB954&color=fff&size=128`;
+            
+            document.getElementById('profileAvatar').src = avatarUrl;
+            document.getElementById('displayNameText').textContent = currentUser.display_name || currentUser.username;
+            document.getElementById('usernameText').textContent = '@' + currentUser.username;
+            document.getElementById('displayName').value = currentUser.display_name || '';
+            document.getElementById('newUsername').value = currentUser.username || '';
+
+            // Member since
+            if (currentUser.created_at) {
+                const date = new Date(currentUser.created_at);
+                document.getElementById('memberSince').textContent = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            }
+
+            // Load stats
+            loadStats();
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/auth/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('playlistCount').textContent = data.stats?.total_playlists || 0;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message ' + type;
+            setTimeout(() => { box.className = 'message'; }, 4000);
+        }
+
+        // Initialize auth button
+        document.addEventListener('DOMContentLoaded', () => {
+            new AuthButton('authButtonContainer');
+            loadUserData();
+
+            // Populate avatar options
+            const avatarOptions = document.getElementById('avatarOptions');
+            defaultAvatars.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'avatar-option';
+                img.onclick = () => {
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    img.classList.add('selected');
+                    selectedAvatarUrl = url;
+                    document.getElementById('customAvatarUrl').value = '';
+                };
+                avatarOptions.appendChild(img);
+            });
+        });
+
+        // Avatar modal
+        document.getElementById('changeAvatarBtn').onclick = () => {
+            document.getElementById('avatarModal').classList.add('active');
+        };
+
+        document.getElementById('cancelAvatar').onclick = () => {
+            document.getElementById('avatarModal').classList.remove('active');
+        };
+
+        document.getElementById('saveAvatar').onclick = async () => {
+            const customUrl = document.getElementById('customAvatarUrl').value;
+            const avatarUrl = customUrl || selectedAvatarUrl;
+
+            if (!avatarUrl) {
+                showMessage('Please select an avatar or enter a URL', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/profile/picture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ profilePicture: avatarUrl })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentUser.profile_picture = avatarUrl;
+                    localStorage.setItem('auth_user', JSON.stringify(currentUser));
+                    document.getElementById('profileAvatar').src = avatarUrl;
+                    document.getElementById('avatarModal').classList.remove('active');
+                    showMessage('Profile picture updated!', 'success');
+                } else {
+                    showMessage(data.message || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        };
+
+        // Display name form
+        document.getElementById('displayNameForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const displayName = document.getElementById('displayName').value;
+
+            try {
+                const response = await fetch('/api/auth/profile/displayname', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ displayName })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentUser.display_name = displayName;
+                    localStorage.setItem('auth_user', JSON.stringify(currentUser));
+                    document.getElementById('displayNameText').textContent = displayName;
+                    showMessage('Display name updated!', 'success');
+                } else {
+                    showMessage(data.message || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        };
+
+        // Username form
+        document.getElementById('usernameForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value;
+
+            try {
+                const response = await fetch('/api/auth/profile/username', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentUser.username = username;
+                    localStorage.setItem('auth_user', JSON.stringify(currentUser));
+                    document.getElementById('usernameText').textContent = '@' + username;
+                    showMessage('Username updated!', 'success');
+                } else {
+                    showMessage(data.message || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        };
+
+        // Password form
+        document.getElementById('passwordForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/profile/password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    showMessage('Password changed successfully!', 'success');
+                } else {
+                    showMessage(data.message || 'Failed to change password', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        };
+    </script>
+</body>
+</html>

@@ -2,8 +2,40 @@
   "demo-user": {
     "userId": "demo-user",
     "createdAt": 1766153952583,
-    "lastUpdatedAt": 1766577305726,
+    "lastUpdatedAt": 1766589122988,
     "recentPlaylists": [
+      {
+        "id": "pl_1766589122988_7hndpvxa3",
+        "timestamp": 1766589122988,
+        "timeOfDay": "evening",
+        "dayOfWeek": 3,
+        "intent": {
+          "rawPrompt": "Epic cinematic orchestral vibes",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "6XXgnNOoI0C5yKh7TQ6wv2",
+        "playlistName": "🎵 Epic cinematic orchestral vibe",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
       {
         "id": "pl_1766577305726_czf1ha50h",
         "timestamp": 1766577305726,
@@ -454,7 +486,7 @@
           "vocalPreference": "medium-vocals"
         },
         "evening": {
-          "preferredEnergy": "low",
+          "preferredEnergy": "medium",
           "preferredGenres": [
             "pop",
             "indie",
@@ -466,7 +498,7 @@
             "neutral",
             "sad"
           ],
-          "vocalPreference": "vocal-heavy"
+          "vocalPreference": "medium-vocals"
         },
         "night": {
           "preferredEnergy": "very-high",
@@ -509,7 +541,7 @@
       }
     },
     "stats": {
-      "totalPlaylistsGenerated": 13,
+      "totalPlaylistsGenerated": 14,
       "totalTracksLiked": 0,
       "totalTracksSkipped": 0,
       "averagePlaylistRating": 5

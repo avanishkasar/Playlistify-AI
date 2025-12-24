@@ -46,8 +46,10 @@ class AuthButton {
 
     return `
       <div class="user-profile">
-        <img src="${profileImage}" alt="${user.display_name || user.username}" />
-        <span>${user.display_name || user.username}</span>
+        <a href="/profile.html" class="profile-link" title="My Profile">
+          <img src="${profileImage}" alt="${user.display_name || user.username}" />
+          <span>${user.display_name || user.username}</span>
+        </a>
         <button class="logout-btn" id="logoutBtn">
           <i class="fas fa-sign-out-alt"></i>
           Logout
