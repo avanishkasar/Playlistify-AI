@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth.css">
   <style>
     /* Landing Page Specific Styles */
     .landing-container {
@@ -140,9 +141,12 @@
       <a href="curated.html" class="nav-link">Curated</a>
       <a href="https://apify.com/viverun/playlistfy" target="_blank" class="nav-link special"><i class="fas fa-bolt nav-icon"></i> Pro</a>
     </div>
-    <div class="nav-badge">
-      <span class="badge-dot"></span>
-      <span>Powered by AI</span>
+    <div class="nav-right">
+      <div id="authButtonContainer"></div>
+      <div class="nav-badge">
+        <span class="badge-dot"></span>
+        <span>Powered by AI</span>
+      </div>
     </div>
   </nav>
 
@@ -190,5 +194,12 @@
   </div>
 
   <script src="cursor.js"></script>
+  <script src="userAuth.js"></script>
+  <script src="auth-button.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      new AuthButton('authButtonContainer');
+    });
+  </script>
 </body>
 </html>
