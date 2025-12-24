@@ -183,6 +183,15 @@ class UserAuth {
   }
 
   /**
+   * Set user data (alias for external use)
+   */
+  setUser(user) {
+    this.user = user;
+    localStorage.setItem('auth_user', JSON.stringify(user));
+    this.notifyListeners();
+  }
+
+  /**
    * Validate current session
    */
   async validateSession() {
