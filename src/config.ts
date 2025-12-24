@@ -11,6 +11,8 @@ export interface Config {
   server: {
     port: number;
     mcpCommand: string;
+    redirectUri: string;
+    frontendUrl: string;
   };
   features: {
     enableNLP: boolean;
@@ -42,6 +44,8 @@ export function loadConfig(): Config {
     server: {
       port: Number(process.env.PORT || 3001),
       mcpCommand: process.env.MCP_COMMAND || 'http://localhost:3001/mcp',
+      redirectUri: process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3001/auth/callback',
+      frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5500',
     },
     features: {
       enableNLP: process.env.ENABLE_NLP === 'true',

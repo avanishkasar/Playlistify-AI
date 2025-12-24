@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playlistify AI - Your Personal AI Music Agent</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pages.css">
+  <style>
+    /* Landing Page Specific Styles */
+    .landing-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .landing-logo {
+      margin-bottom: 2rem;
+    }
+
+    .landing-logo img {
+      width: 120px;
+      height: 120px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    .landing-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .landing-title .highlight {
+      background: linear-gradient(135deg, var(--spotify-green) 0%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .landing-tagline {
+      font-size: clamp(1.1rem, 3vw, 1.4rem);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+
+    .landing-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2.5rem;
+      background: linear-gradient(135deg, var(--spotify-green) 0%, #1ed760 100%);
+      color: #000;
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 100px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 30px rgba(29, 185, 84, 0.4);
+    }
+
+    .landing-cta:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(29, 185, 84, 0.5);
+    }
+
+    .landing-cta svg {
+      transition: transform 0.3s ease;
+    }
+
+    .landing-cta:hover svg {
+      transform: translateX(5px);
+    }
+
+    .landing-features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 4rem;
+      max-width: 800px;
+    }
+
+    .feature-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .feature-badge i {
+      color: var(--spotify-green);
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Gradient Background -->
+  <div class="gradient-bg">
+    <div class="gradient-overlay"></div>
+    <div class="gradient-blob blob-1"></div>
+    <div class="gradient-blob blob-2"></div>
+    <div class="gradient-blob blob-3"></div>
+    <div class="gradient-blob blob-4"></div>
+    <div class="noise-overlay"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="landing.html" class="logo">
+      <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
+      <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="about.html" class="nav-link">About</a>
+      <a href="how-it-works.html" class="nav-link">How It Works</a>
+      <a href="curated.html" class="nav-link">Curated</a>
+      <a href="https://apify.com/viverun/playlistfy" target="_blank" class="nav-link special"><i class="fas fa-bolt nav-icon"></i> Pro</a>
+    </div>
+    <div class="nav-badge">
+      <span class="badge-dot"></span>
+      <span>Powered by AI</span>
+    </div>
+  </nav>
+
+  <!-- Landing Content -->
+  <div class="landing-container">
+    <div class="landing-logo">
+      <img src="images/favicon.png" alt="Playlistify AI">
+    </div>
+    
+    <h1 class="landing-title">
+      Playlistify <span class="highlight">AI</span>
+    </h1>
+    
+    <p class="landing-tagline">
+      Describe your mood. Get your playlist. In seconds.<br>
+      Your personal AI music agent that actually understands you.
+    </p>
+    
+    <a href="index.html" class="landing-cta">
+      <span>Get Started</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"></path>
+        <path d="m12 5 7 7-7 7"></path>
+      </svg>
+    </a>
+
+    <div class="landing-features">
+      <div class="feature-badge">
+        <i class="fas fa-bolt"></i>
+        <span>Instant Generation</span>
+      </div>
+      <div class="feature-badge">
+        <i class="fas fa-brain"></i>
+        <span>AI-Powered</span>
+      </div>
+      <div class="feature-badge">
+        <i class="fas fa-music"></i>
+        <span>100M+ Tracks</span>
+      </div>
+      <div class="feature-badge">
+        <i class="fas fa-microphone"></i>
+        <span>Voice Input</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="cursor.js"></script>
+</body>
+</html>

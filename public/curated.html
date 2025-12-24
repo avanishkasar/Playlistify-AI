@@ -27,21 +27,16 @@
 
   <!-- Navigation -->
   <nav>
-    <div class="logo">
-      <a href="index.html" class="logo-link">
-        <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
-        <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
-      </a>
-    </div>
+    <a href="landing.html" class="logo">
+      <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
+      <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
+    </a>
     <div class="nav-links">
       <a href="index.html" class="nav-link">Home</a>
       <a href="about.html" class="nav-link">About</a>
       <a href="how-it-works.html" class="nav-link">How It Works</a>
-      <a href="curated.html" class="nav-link active">Curated Picks</a>
-      <a href="apify.html" class="nav-link special">
-        <span class="nav-icon">⚡</span>
-        Pro Version
-      </a>
+      <a href="curated.html" class="nav-link active">Curated</a>
+      <a href="https://apify.com/viverun/playlistfy" target="_blank" class="nav-link special"><i class="fas fa-bolt nav-icon"></i> Pro</a>
     </div>
     <div class="nav-badge">
       <span class="badge-dot"></span>
@@ -50,6 +45,46 @@
   </nav>
 
   <main class="page-main">
+    <!-- Leaderboard Section -->
+    <section class="content-section" style="margin-bottom: 2rem;">
+      <h2 class="section-title">🏆 Top Playlist Creators</h2>
+      <p class="section-desc">Users who have generated the most playlists this week!</p>
+      
+      <div class="leaderboard-container">
+        <!-- Winner Spotlight -->
+        <div id="winner-spotlight" class="winner-spotlight glass-card" style="display: none;">
+          <div class="winner-crown">👑</div>
+          <div class="winner-avatar">
+            <div class="winner-glow"></div>
+            <span class="winner-rank">1</span>
+          </div>
+          <div class="winner-info">
+            <span class="winner-label">🎉 Winner of the Week 🎉</span>
+            <h3 id="winner-name" class="winner-name">Loading...</h3>
+            <p id="winner-count" class="winner-count">0 Playlists Generated</p>
+          </div>
+          <div class="winner-confetti">
+            <span>🎊</span><span>✨</span><span>🎵</span><span>🎶</span><span>⭐</span>
+          </div>
+        </div>
+        
+        <!-- Leaderboard List -->
+        <div class="leaderboard-list glass-card">
+          <div class="leaderboard-header">
+            <span class="lb-rank">Rank</span>
+            <span class="lb-user">User</span>
+            <span class="lb-count">Playlists</span>
+          </div>
+          <div id="leaderboard-items" class="leaderboard-items">
+            <div class="leaderboard-loading">
+              <div class="loading-spinner"></div>
+              <p>Loading leaderboard...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Hero Section -->
     <section class="page-hero">
       <div class="hero-badge special-badge">
@@ -321,7 +356,7 @@
           <li><a href="about.html">About Us</a></li>
           <li><a href="how-it-works.html">How It Works</a></li>
           <li><a href="curated.html">Curated Picks</a></li>
-          <li><a href="apify.html">Pro Version</a></li>
+          <li><a href="https://apify.com/viverun/playlistfy" target="_blank">Pro Version</a></li>
         </ul>
       </div>
       <div class="footer-links">
@@ -359,6 +394,78 @@
 
   <script src="cursor.js"></script>
   <script>
+    // Fetch and display leaderboard
+    async function loadLeaderboard() {
+      const leaderboardItems = document.getElementById('leaderboard-items');
+      const winnerSpotlight = document.getElementById('winner-spotlight');
+      
+      try {
+        const response = await fetch('/api/leaderboard');
+        const result = await response.json();
+        
+        if (!result.success || !result.data || result.data.length === 0) {
+          leaderboardItems.innerHTML = `
+            <div class="leaderboard-empty">
+              <div class="leaderboard-empty-icon">🎵</div>
+              <p>No playlists generated yet! Be the first to create one and claim the top spot!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        const users = result.data.slice(0, 10); // Show top 10
+        
+        // Show winner spotlight if there's at least one user
+        if (users.length > 0) {
+          const winner = users[0];
+          winnerSpotlight.style.display = 'flex';
+          document.getElementById('winner-name').textContent = winner.display_name || winner.username || 'Anonymous';
+          document.getElementById('winner-count').innerHTML = `<strong>${winner.playlist_count}</strong> Playlists Generated`;
+        }
+        
+        // Build leaderboard items
+        let html = '';
+        users.forEach((user, index) => {
+          const rank = index + 1;
+          const rankClass = rank <= 3 ? `rank-${rank}` : '';
+          const displayName = user.display_name || user.username || 'Anonymous';
+          const username = user.username || 'User';
+          
+          html += `
+            <div class="leaderboard-item ${rankClass}">
+              <div class="lb-rank-badge">${rank}</div>
+              <div class="lb-user-info">
+                <span class="lb-username">${displayName}</span>
+                <span class="lb-display-name">@${username}</span>
+              </div>
+              <div class="lb-playlist-count">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                ${user.playlist_count}
+              </div>
+            </div>
+          `;
+        });
+        
+        leaderboardItems.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        leaderboardItems.innerHTML = `
+          <div class="leaderboard-empty">
+            <div class="leaderboard-empty-icon">⚠️</div>
+            <p>Unable to load leaderboard. Please try again later.</p>
+          </div>
+        `;
+      }
+    }
+    
+    // Load leaderboard on page load
+    document.addEventListener('DOMContentLoaded', loadLeaderboard);
+
     // Generate playlist based on Siddharth's taste
     function generateHostPlaylist() {
       const prompts = [

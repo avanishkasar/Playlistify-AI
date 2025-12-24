@@ -1,0 +1,518 @@
+{
+  "demo-user": {
+    "userId": "demo-user",
+    "createdAt": 1766153952583,
+    "lastUpdatedAt": 1766577305726,
+    "recentPlaylists": [
+      {
+        "id": "pl_1766577305726_czf1ha50h",
+        "timestamp": 1766577305726,
+        "timeOfDay": "evening",
+        "dayOfWeek": 3,
+        "intent": {
+          "rawPrompt": "relax music: English Justin Bieber songs for sad moodd",
+          "parsedMood": "sad",
+          "parsedEnergy": "low"
+        },
+        "playlistId": "4gaodo4LALMcKGSdK4KFGD",
+        "playlistName": "🎵 relax music: English Justin Bi",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "low",
+          "dominantMood": "sad",
+          "bpmRange": {
+            "min": 75,
+            "max": 110
+          },
+          "vocalIntensity": "vocal-heavy",
+          "genres": [
+            "indie",
+            "acoustic",
+            "singer-songwriter"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766510257906_i1b5cpbaw",
+        "timestamp": 1766510257906,
+        "timeOfDay": "night",
+        "dayOfWeek": 2,
+        "intent": {
+          "rawPrompt": "workout music: a all nighter playlist for late night studies with kishore kumar and rd burman songs only",
+          "parsedActivity": "workout",
+          "parsedEnergy": "very-high"
+        },
+        "playlistId": "7FvBkYrwMzxtCQfTmDj0zR",
+        "playlistName": "💪 Burman Beats All-Nighter",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "very-high",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 150,
+            "max": 196
+          },
+          "vocalIntensity": "vocal-heavy",
+          "genres": [
+            "electronic",
+            "hip-hop",
+            "rock"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766419644603_0ksd76bam",
+        "timestamp": 1766419644603,
+        "timeOfDay": "night",
+        "dayOfWeek": 1,
+        "intent": {
+          "rawPrompt": "study music: fast pomodoro types (less energy)",
+          "parsedEnergy": "high"
+        },
+        "playlistId": "2UH58aXgGOWvEKR5eEyshq",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "high",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 115,
+            "max": 145
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766419607832_s9vqsr0qv",
+        "timestamp": 1766419607832,
+        "timeOfDay": "night",
+        "dayOfWeek": 1,
+        "intent": {
+          "rawPrompt": "study music: fast pomodoro types",
+          "parsedEnergy": "high"
+        },
+        "playlistId": "2u0hHW1OkAAYodSoGPjfUu",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "high",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 115,
+            "max": 145
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766159985385_xp5rvpy5o",
+        "timestamp": 1766159985385,
+        "timeOfDay": "night",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "a hindhi 2019 mashup playlits",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "1OBb2dtcB5LNR5WuKkwQOk",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766159057172_zcigvhpag",
+        "timestamp": 1766159057172,
+        "timeOfDay": "night",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "a hindhi 2019 mashup playlits",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "3C5e9s1UuqYpt1dHxe079S",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766159053950_vhddrbdwz",
+        "timestamp": 1766159053950,
+        "timeOfDay": "night",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "a hindhi 2019 mashup playlits",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "6ZT2ICWwpO7PUxpxp9mwfL",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766159028383_6ubjz6gtq",
+        "timestamp": 1766159028383,
+        "timeOfDay": "night",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "neutral vibes (more instrumental)",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "0pNJkyXdaEbiLxeNmHcipL",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "instrumental",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false,
+          "overallRating": "loved"
+        }
+      },
+      {
+        "id": "pl_1766159021766_usbv4ciw1",
+        "timestamp": 1766159021766,
+        "timeOfDay": "night",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "neutral vibes",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "4lMCLwXiUZfy5I1XlvIVMQ",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766158998576_wpcyyh7ev",
+        "timestamp": 1766158998576,
+        "timeOfDay": "night",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "your usual vibe",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "3U9Ap82MnB0z8B5FXBwnmm",
+        "playlistName": "🎵 Night Neutral Vibes",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 90,
+            "max": 130
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766155989335_b2nuineve",
+        "timestamp": 1766155989335,
+        "timeOfDay": "evening",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "maybe some hindhi and english mashups",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "494jmWc17lTqptQBuoE8n9",
+        "playlistName": "🎵 maybe some hindhi and english mashups",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 110,
+            "max": 156
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766154473294_4mk6mu81p",
+        "timestamp": 1766154473294,
+        "timeOfDay": "evening",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "maybe some hindhi and english mashups",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "53JSpzmYAygCkwzhsrdp6K",
+        "playlistName": "🎵 maybe some hindhi and english mashups",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 110,
+            "max": 156
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false
+        }
+      },
+      {
+        "id": "pl_1766154311271_23adfprpp",
+        "timestamp": 1766154311271,
+        "timeOfDay": "evening",
+        "dayOfWeek": 5,
+        "intent": {
+          "rawPrompt": "maybe some hindhi and english mashups",
+          "parsedEnergy": "medium"
+        },
+        "playlistId": "0Gr7OqDE8oIrFkUZX6veaN",
+        "playlistName": "🎵 maybe some hindhi and english mashups",
+        "trackCount": 20,
+        "characteristics": {
+          "averageEnergy": "medium",
+          "dominantMood": "neutral",
+          "bpmRange": {
+            "min": 110,
+            "max": 156
+          },
+          "vocalIntensity": "medium-vocals",
+          "genres": [
+            "pop",
+            "indie",
+            "electronic"
+          ]
+        },
+        "feedback": {
+          "likedTracks": [],
+          "skippedTracks": [],
+          "completed": false,
+          "overallRating": "loved"
+        }
+      }
+    ],
+    "tasteProfile": {
+      "listeningPatterns": {
+        "preferredTimes": [
+          "evening",
+          "night"
+        ],
+        "averageSessionsPerDay": 0,
+        "mostActiveDay": 5
+      },
+      "timeBasedPreferences": {
+        "early-morning": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "morning": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "afternoon": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "evening": {
+          "preferredEnergy": "low",
+          "preferredGenres": [
+            "pop",
+            "indie",
+            "electronic",
+            "acoustic",
+            "singer-songwriter"
+          ],
+          "preferredMoods": [
+            "neutral",
+            "sad"
+          ],
+          "vocalPreference": "vocal-heavy"
+        },
+        "night": {
+          "preferredEnergy": "very-high",
+          "preferredGenres": [
+            "pop",
+            "indie",
+            "electronic",
+            "hip-hop",
+            "rock"
+          ],
+          "preferredMoods": [
+            "neutral"
+          ],
+          "vocalPreference": "vocal-heavy"
+        },
+        "late-night": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        }
+      },
+      "genreAffinities": {
+        "pop": 80,
+        "indie": 80,
+        "electronic": 80
+      },
+      "moodAffinities": {
+        "neutral": 80
+      },
+      "activityPreferences": {},
+      "avoidPatterns": {
+        "genres": [],
+        "characteristics": []
+      },
+      "recentMoodTrend": {
+        "period": "week",
+        "dominantMood": "neutral",
+        "energyTrend": "stable"
+      }
+    },
+    "stats": {
+      "totalPlaylistsGenerated": 13,
+      "totalTracksLiked": 0,
+      "totalTracksSkipped": 0,
+      "averagePlaylistRating": 5
+    }
+  }
+}

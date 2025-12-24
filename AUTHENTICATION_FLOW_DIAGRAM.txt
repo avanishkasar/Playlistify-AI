@@ -1,0 +1,324 @@
+```
+╔════════════════════════════════════════════════════════════════════╗
+║              SPOTIFY OAUTH AUTHENTICATION FLOW                     ║
+║                   (Playlistify Implementation)                     ║
+╚════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         INITIAL SETUP (One-Time)                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+    Developer (You)
+         │
+         ├─> Create Spotify App @ developer.spotify.com
+         │   ├─ App Name: "Playlistify"
+         │   ├─ Redirect URI: http://localhost:3001/auth/callback
+         │   └─ Get: Client ID & Client Secret
+         │
+         └─> Configure .env file
+             ├─ SPOTIFY_CLIENT_ID=abc123
+             ├─ SPOTIFY_CLIENT_SECRET=xyz789
+             ├─ SPOTIFY_REDIRECT_URI=http://localhost:3001/auth/callback
+             └─ FRONTEND_URL=http://localhost:5500
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         USER AUTHENTICATION FLOW                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────┐
+│  USER   │  Opens http://localhost:5500
+└────┬────┘
+     │
+     v
+┌─────────────────┐
+│  index.html     │  Not authenticated?
+│  Checks auth    │  ────────────┐
+└─────────────────┘              │
+                                 v
+                          ┌─────────────────┐
+                          │  login.html     │
+                          │  Shows "Connect │
+                          │  with Spotify"  │
+                          └────────┬────────┘
+                                   │
+                          User clicks button
+                                   │
+                                   v
+                          ┌─────────────────┐
+                          │  GET /auth/login│
+                          │  (Backend)      │
+                          └────────┬────────┘
+                                   │
+                Builds authorization URL with:
+                ├─ response_type=code
+                ├─ client_id=YOUR_CLIENT_ID
+                ├─ scope=user-read-private...
+                └─ redirect_uri=callback URL
+                                   │
+                                   v
+                    ┌──────────────────────────┐
+                    │  Spotify Authorization   │
+                    │  accounts.spotify.com    │
+                    └─────────┬────────────────┘
+                              │
+                    User logs in with:
+                    ├─ Spotify username
+                    └─ Spotify password
+                              │
+                    Sees permissions:
+                    ├─ Access playlists
+                    ├─ Modify playlists
+                    └─ Read profile
+                              │
+                    User clicks "Authorize"
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  Spotify sends back:     │
+                    │  code=auth_code_123      │
+                    │  to /auth/callback       │
+                    └─────────┬────────────────┘
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  GET /auth/callback      │
+                    │  (Backend receives code) │
+                    └─────────┬────────────────┘
+                              │
+                Exchanges code for tokens:
+                              │
+                POST to Spotify:
+                ├─ code=auth_code_123
+                ├─ client_id=YOUR_ID
+                ├─ client_secret=YOUR_SECRET
+                └─ grant_type=authorization_code
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  Spotify responds with:  │
+                    │  {                       │
+                    │    access_token: "...",  │
+                    │    refresh_token: "...", │
+                    │    expires_in: 3600      │
+                    │  }                       │
+                    └─────────┬────────────────┘
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  Redirect to frontend:   │
+                    │  ?access_token=...       │
+                    │  &refresh_token=...      │
+                    └─────────┬────────────────┘
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  Frontend (auth.js)      │
+                    │  Receives tokens         │
+                    └─────────┬────────────────┘
+                              │
+                Stores in localStorage:
+                ├─ spotify_access_token
+                ├─ spotify_refresh_token
+                └─ spotify_token_expiry
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  Fetch user profile:     │
+                    │  GET /v1/me              │
+                    │  Authorization: Bearer   │
+                    └─────────┬────────────────┘
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  User object loaded:     │
+                    │  {                       │
+                    │    display_name,         │
+                    │    email,                │
+                    │    images,               │
+                    │    ...                   │
+                    │  }                       │
+                    └─────────┬────────────────┘
+                              │
+                              v
+                    ┌──────────────────────────┐
+                    │  ✅ AUTHENTICATED!       │
+                    │  Show main app           │
+                    │  Display user profile    │
+                    └──────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         TOKEN REFRESH FLOW                          │
+└─────────────────────────────────────────────────────────────────────┘
+
+    Access token expires after 1 hour
+              │
+              v
+    ┌──────────────────────┐
+    │  auth.js detects     │
+    │  token expired       │
+    └─────────┬────────────┘
+              │
+              v
+    ┌──────────────────────┐
+    │  POST /auth/refresh  │
+    │  {                   │
+    │    refresh_token     │
+    │  }                   │
+    └─────────┬────────────┘
+              │
+              v
+    ┌──────────────────────┐
+    │  Backend exchanges   │
+    │  refresh token for   │
+    │  new access token    │
+    └─────────┬────────────┘
+              │
+              v
+    ┌──────────────────────┐
+    │  New access token    │
+    │  returned & stored   │
+    └──────────────────────┘
+              │
+              v
+    ✅ Continue using app
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         LOGOUT FLOW                                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+    User clicks "Logout"
+              │
+              v
+    ┌──────────────────────┐
+    │  auth.js.logout()    │
+    └─────────┬────────────┘
+              │
+    Clears localStorage:
+    ├─ Remove access_token
+    ├─ Remove refresh_token
+    └─ Remove token_expiry
+              │
+              v
+    ┌──────────────────────┐
+    │  Redirect to         │
+    │  /login.html         │
+    └──────────────────────┘
+              │
+              v
+    🔓 Logged out
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     MAKING API CALLS WITH AUTH                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+    Your App Code
+         │
+         v
+    ┌──────────────────────────────┐
+    │  const token = await         │
+    │  spotifyAuth.getAccessToken()│
+    └───────────┬──────────────────┘
+                │
+    Auto-checks if expired
+    ├─ Expired? → Refresh first
+    └─ Valid? → Return token
+                │
+                v
+    ┌──────────────────────────────┐
+    │  fetch(spotify_api_url, {    │
+    │    headers: {                │
+    │      'Authorization':        │
+    │      `Bearer ${token}`       │
+    │    }                         │
+    │  })                          │
+    └───────────┬──────────────────┘
+                │
+                v
+    ┌──────────────────────────────┐
+    │  Spotify API response        │
+    │  (playlists, tracks, etc.)   │
+    └──────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     FILE ARCHITECTURE                               │
+└─────────────────────────────────────────────────────────────────────┘
+
+Backend (Node.js + Express)
+├── src/
+│   ├── auth.ts ────────────────┐
+│   │   ├─ /auth/login          │  OAuth Routes
+│   │   ├─ /auth/callback       │
+│   │   ├─ /auth/refresh        │
+│   │   └─ /auth/logout         │
+│   │                            │
+│   ├── config.ts ───────────────┤  Configuration
+│   │   ├─ clientId             │
+│   │   ├─ clientSecret         │
+│   │   ├─ redirectUri          │
+│   │   └─ frontendUrl          │
+│   │                            │
+│   └── main.ts ─────────────────┘  Express Server
+│       └─ app.use('/auth', authRoutes)
+
+Frontend (HTML + JavaScript)
+├── public/
+│   ├── login.html ─────────────┐
+│   │   └─ "Connect" button     │  UI Components
+│   │                            │
+│   ├── index.html ──────────────┤
+│   │   ├─ Main app             │
+│   │   └─ Auth button in nav   │
+│   │                            │
+│   ├── auth.js ─────────────────┤
+│   │   ├─ Token management     │  Auth Logic
+│   │   ├─ OAuth callback       │
+│   │   └─ Auto-refresh         │
+│   │                            │
+│   ├── auth-button.js ──────────┤
+│   │   ├─ User profile display │  Components
+│   │   └─ Login/logout buttons │
+│   │                            │
+│   └── auth.css ────────────────┘  Styles
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     SECURITY & BEST PRACTICES                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+✅ Client Secret NEVER exposed to browser
+✅ Token exchange happens server-side
+✅ Tokens stored securely in localStorage
+✅ Auto-refresh prevents expired token errors
+✅ HTTPS required for production
+✅ Scoped permissions (principle of least privilege)
+✅ User can revoke access anytime from Spotify
+✅ No passwords stored or handled
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     ENVIRONMENT VARIABLES                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+Developer Setup (.env file):
+
+SPOTIFY_CLIENT_ID=abc123              ← From Spotify Dashboard
+SPOTIFY_CLIENT_SECRET=xyz789          ← From Spotify Dashboard
+SPOTIFY_REDIRECT_URI=http://localhost:3001/auth/callback
+FRONTEND_URL=http://localhost:5500
+PORT=3001
+
+Production Setup:
+Same variables, but update:
+├─ REDIRECT_URI → https://yourdomain.com/auth/callback
+└─ FRONTEND_URL → https://yourdomain.com
+
+
+═══════════════════════════════════════════════════════════════════════
+                         END OF FLOW DIAGRAM
+═══════════════════════════════════════════════════════════════════════
+```
