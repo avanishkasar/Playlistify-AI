@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import Database, { Database as DatabaseType } from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import crypto from 'crypto';
@@ -6,8 +6,21 @@ import crypto from 'crypto';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// User interface
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  password_hash: string;
+  created_at: string;
+  last_login: string | null;
+  spotify_connected: number;
+  spotify_id: string | null;
+  display_name: string | null;
+}
+
 // Initialize SQLite database
-const db = new Database(join(__dirname, '../data/playlistify.db'));
+const db: DatabaseType = new Database(join(__dirname, '../data/playlistify.db'));
 
 // Enable foreign keys
 db.pragma('foreign_keys = ON');
@@ -115,7 +128,7 @@ export function authenticateUser(username: string, password: string) {
     WHERE username = ? AND password_hash = ?
   `);
   
-  const user = stmt.get(username, passwordHash);
+  const user = stmt.get(username, passwordHash) as User | undefined;
   
   if (user) {
     // Update last login
@@ -131,14 +144,14 @@ export function authenticateUser(username: string, password: string) {
 /**
  * Get user by ID
  */
-export function getUserById(userId: number) {
+export function getUserById(userId: number): User | undefined {
   const stmt = db.prepare(`
     SELECT id, username, email, display_name, spotify_connected, created_at, last_login
     FROM users
     WHERE id = ?
   `);
   
-  return stmt.get(userId);
+  return stmt.get(userId) as User | undefined;
 }
 
 /**

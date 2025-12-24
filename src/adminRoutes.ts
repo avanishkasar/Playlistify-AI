@@ -50,14 +50,15 @@ function validateAdminSession(token: string): boolean {
 /**
  * Middleware to protect admin routes
  */
-function requireAdminAuth(req: Request, res: Response, next: Function) {
+function requireAdminAuth(req: Request, res: Response, next: Function): void {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token || !validateAdminSession(token)) {
-    return res.status(401).json({
+    res.status(401).json({
       error: 'unauthorized',
       message: 'Admin authentication required'
     });
+    return;
   }
   
   next();
@@ -66,14 +67,15 @@ function requireAdminAuth(req: Request, res: Response, next: Function) {
 /**
  * Admin login
  */
-router.post('/login', (req: Request, res: Response) => {
+router.post('/login', (req: Request, res: Response): void => {
   const { username, password } = req.body;
   
   if (!username || !password) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'missing_credentials',
       message: 'Username and password are required'
     });
+    return;
   }
   
   if (validateAdminCredentials(username, password)) {

@@ -19,7 +19,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
  * Step 1: Redirect user to Spotify authorization page
  * User clicks "Connect with Spotify" → redirected here
  */
-router.get('/login', (req: Request, res: Response) => {
+router.get('/login', (_req: Request, res: Response) => {
   console.log('🔐 Auth login endpoint hit');
   console.log('Client ID:', CLIENT_ID);
   console.log('Redirect URI:', REDIRECT_URI);
@@ -54,17 +54,19 @@ router.get('/login', (req: Request, res: Response) => {
  * Step 2: Spotify redirects back here with authorization code
  * Exchange code for user's access token and refresh token
  */
-router.get('/callback', async (req: Request, res: Response) => {
+router.get('/callback', async (req: Request, res: Response): Promise<void> => {
   const code = req.query.code as string;
   const error = req.query.error as string;
 
   if (error) {
     console.error('Authorization error:', error);
-    return res.redirect(`${FRONTEND_URL}?error=access_denied`);
+    res.redirect(`${FRONTEND_URL}?error=access_denied`);
+    return;
   }
 
   if (!code) {
-    return res.redirect(`${FRONTEND_URL}?error=no_code`);
+    res.redirect(`${FRONTEND_URL}?error=no_code`);
+    return;
   }
 
   try {
@@ -85,7 +87,8 @@ router.get('/callback', async (req: Request, res: Response) => {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
       console.error('Token exchange error:', errorData);
-      return res.redirect(`${FRONTEND_URL}?error=token_exchange_failed`);
+      res.redirect(`${FRONTEND_URL}?error=token_exchange_failed`);
+      return;
     }
 
     const tokenData = await tokenResponse.json();
@@ -109,14 +112,15 @@ router.get('/callback', async (req: Request, res: Response) => {
 /**
  * Step 3: Refresh expired access token using refresh token
  */
-router.post('/refresh', async (req: Request, res: Response) => {
+router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
   const { refresh_token } = req.body;
 
   if (!refresh_token) {
-    return res.status(400).json({ 
+    res.status(400).json({ 
       error: 'missing_refresh_token',
       message: 'Refresh token is required' 
     });
+    return;
   }
 
   try {
@@ -135,10 +139,11 @@ router.post('/refresh', async (req: Request, res: Response) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Token refresh error:', errorData);
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'refresh_failed',
         message: 'Failed to refresh access token'
       });
+      return;
     }
 
     const data = await response.json();
@@ -159,7 +164,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
 /**
  * Logout endpoint (client-side will clear tokens)
  */
-router.post('/logout', (req: Request, res: Response) => {
+router.post('/logout', (_req: Request, res: Response): void => {
   res.json({ 
     status: 'success',
     message: 'Logged out successfully' 
@@ -169,14 +174,15 @@ router.post('/logout', (req: Request, res: Response) => {
 /**
  * Get current user's Spotify profile
  */
-router.get('/me', async (req: Request, res: Response) => {
+router.get('/me', async (req: Request, res: Response): Promise<void> => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ 
+    res.status(401).json({ 
       error: 'unauthorized',
       message: 'Authorization header required' 
     });
+    return;
   }
 
   const accessToken = authHeader.split(' ')[1];
@@ -189,10 +195,11 @@ router.get('/me', async (req: Request, res: Response) => {
     });
 
     if (!response.ok) {
-      return res.status(response.status).json({ 
+      res.status(response.status).json({ 
         error: 'spotify_api_error',
         message: 'Failed to fetch user profile'
       });
+      return;
     }
 
     const userData = await response.json();

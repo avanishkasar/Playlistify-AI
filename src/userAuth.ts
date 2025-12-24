@@ -4,7 +4,7 @@
  */
 
 import express, { Request, Response } from "express";
-import { createUser, authenticateUser, getUserById, getUserPlaylists, getUserStats } from "./database.js";
+import { createUser, authenticateUser, getUserById, getUserPlaylists, getUserStats, User } from "./database.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -50,29 +50,32 @@ function validateSession(token: string) {
 /**
  * Register new user
  */
-router.post('/register', (req: Request, res: Response) => {
+router.post('/register', (req: Request, res: Response): void => {
   const { username, email, password } = req.body;
   
   // Validation
   if (!username || !email || !password) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'missing_fields',
       message: 'Username, email, and password are required'
     });
+    return;
   }
   
   if (username.length < 3) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'invalid_username',
       message: 'Username must be at least 3 characters'
     });
+    return;
   }
   
   if (password.length < 6) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'weak_password',
       message: 'Password must be at least 6 characters'
     });
+    return;
   }
   
   try {
@@ -100,24 +103,26 @@ router.post('/register', (req: Request, res: Response) => {
 /**
  * Login user
  */
-router.post('/login', (req: Request, res: Response) => {
+router.post('/login', (req: Request, res: Response): void => {
   const { username, password } = req.body;
   
   if (!username || !password) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'missing_credentials',
       message: 'Username and password are required'
     });
+    return;
   }
   
   try {
     const user = authenticateUser(username, password);
     
     if (!user) {
-      return res.status(401).json({
+      res.status(401).json({
         error: 'invalid_credentials',
         message: 'Invalid username or password'
       });
+      return;
     }
     
     const token = createSession(user.id, user.username);
@@ -156,32 +161,35 @@ router.post('/logout', (req: Request, res: Response) => {
 /**
  * Get current user profile
  */
-router.get('/me', (req: Request, res: Response) => {
+router.get('/me', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
-    return res.status(401).json({
+    res.status(401).json({
       error: 'unauthorized',
       message: 'No token provided'
     });
+    return;
   }
   
   const session = validateSession(token);
   
   if (!session) {
-    return res.status(401).json({
+    res.status(401).json({
       error: 'invalid_session',
       message: 'Session expired or invalid'
     });
+    return;
   }
   
   const user = getUserById(session.userId);
   
   if (!user) {
-    return res.status(404).json({
+    res.status(404).json({
       error: 'user_not_found',
       message: 'User not found'
     });
+    return;
   }
   
   res.json({
@@ -197,17 +205,19 @@ router.get('/me', (req: Request, res: Response) => {
 /**
  * Get user's playlists
  */
-router.get('/playlists', (req: Request, res: Response) => {
+router.get('/playlists', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
-    return res.status(401).json({ error: 'unauthorized' });
+    res.status(401).json({ error: 'unauthorized' });
+    return;
   }
   
   const session = validateSession(token);
   
   if (!session) {
-    return res.status(401).json({ error: 'invalid_session' });
+    res.status(401).json({ error: 'invalid_session' });
+    return;
   }
   
   const playlists = getUserPlaylists(session.userId);
@@ -218,17 +228,19 @@ router.get('/playlists', (req: Request, res: Response) => {
 /**
  * Get user statistics
  */
-router.get('/stats', (req: Request, res: Response) => {
+router.get('/stats', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
-    return res.status(401).json({ error: 'unauthorized' });
+    res.status(401).json({ error: 'unauthorized' });
+    return;
   }
   
   const session = validateSession(token);
   
   if (!session) {
-    return res.status(401).json({ error: 'invalid_session' });
+    res.status(401).json({ error: 'invalid_session' });
+    return;
   }
   
   const stats = getUserStats(session.userId);

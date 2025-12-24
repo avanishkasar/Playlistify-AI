@@ -8,7 +8,7 @@
  * - Personalized suggestions based on taste profile
  */
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Use a fast, cheap model for quick responses
