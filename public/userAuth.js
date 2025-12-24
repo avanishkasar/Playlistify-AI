@@ -160,7 +160,7 @@ class UserAuth {
       }
 
       this.setSession(data.token, data.user);
-      window.location.href = '/index.html';
+      window.location.href = '/app.html';
       
     } catch (error) {
       this.showError(error.message);

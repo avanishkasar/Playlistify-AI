@@ -27,12 +27,12 @@
 
   <!-- Navigation -->
   <nav>
-    <a href="landing.html" class="logo">
+    <a href="/" class="logo">
       <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
       <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
     </a>
     <div class="nav-links">
-      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Home</a>
       <a href="about.html" class="nav-link">About</a>
       <a href="how-it-works.html" class="nav-link">How It Works</a>
       <a href="curated.html" class="nav-link active">Curated</a>
@@ -352,7 +352,7 @@
       <div class="footer-links">
         <h4>Quick Links</h4>
         <ul>
-          <li><a href="index.html">Home</a></li>
+          <li><a href="app.html">Home</a></li>
           <li><a href="about.html">About Us</a></li>
           <li><a href="how-it-works.html">How It Works</a></li>
           <li><a href="curated.html">Curated Picks</a></li>
@@ -475,7 +475,7 @@
         'Emotional Bollywood soundtracks Barfi Rockstar Jab We Met',
       ];
       const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-      window.location.href = `index.html?prompt=${encodeURIComponent(randomPrompt)}`;
+      window.location.href = `app.html?prompt=${encodeURIComponent(randomPrompt)}`;
     }
 
     function generateSiddharthPlaylist(type) {
@@ -485,7 +485,7 @@
         'classic': 'Classic Bollywood golden era Mohammed Rafi Lata Mangeshkar 60s 70s Hindi',
         'hackathon': 'Coding focus music lo-fi indie chill concentration late night',
       };
-      window.location.href = `index.html?prompt=${encodeURIComponent(prompts[type] || prompts['thoda-aur'])}`;
+      window.location.href = `app.html?prompt=${encodeURIComponent(prompts[type] || prompts['thoda-aur'])}`;
     }
   </script>
 </body>

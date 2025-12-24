@@ -42,12 +42,7 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
-// Root path serves landing page - MUST be before static middleware
-app.get("/", (_req, res) => {
-  res.sendFile("landing.html", { root: "public" });
-});
-
-// Static files - index.html won't be auto-served at / because of the route above
+// Static files - index.html (landing page) will auto-serve at /
 app.use(express.static("public"));
 
 // Mount user authentication routes
