@@ -79,6 +79,74 @@ export function initializeDatabase() {
   `);
 
   console.log('✅ Database initialized successfully');
+  
+  // Seed initial users if database is empty
+  seedInitialUsers();
+}
+
+/**
+ * Seed database with initial users for leaderboard
+ */
+function seedInitialUsers() {
+  // Check if users already exist
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as any;
+  if (userCount.count > 0) {
+    console.log('ℹ️ Users already exist, skipping seed');
+    return;
+  }
+  
+  console.log('🌱 Seeding initial users...');
+  
+  // Realistic user data with varied playlist counts
+  const users = [
+    { username: 'avanish', email: 'avanish@playlistify.ai', password: 'Avanish@123', displayName: 'Avanish Kasar', playlists: 30 },
+    { username: 'priya_sharma', email: 'priya.sharma@gmail.com', password: 'Priya@2024', displayName: 'Priya Sharma', playlists: 24 },
+    { username: 'rahul_dev', email: 'rahul.developer@outlook.com', password: 'RahulDev#99', displayName: 'Rahul Kumar', playlists: 21 },
+    { username: 'sneha_music', email: 'sneha.melodies@yahoo.com', password: 'Sneha!Music1', displayName: 'Sneha Patel', playlists: 19 },
+    { username: 'arjun_beats', email: 'arjun.beats@gmail.com', password: 'ArjunB@567', displayName: 'Arjun Reddy', playlists: 17 },
+    { username: 'ananya_vibes', email: 'ananya.vibes@hotmail.com', password: 'Ananya#Vibes', displayName: 'Ananya Singh', playlists: 15 },
+    { username: 'vikram_tunes', email: 'vikram.tunes@gmail.com', password: 'VikramT@321', displayName: 'Vikram Mehra', playlists: 14 },
+    { username: 'kavya_rhythms', email: 'kavya.rhythms@outlook.com', password: 'Kavya!2024', displayName: 'Kavya Nair', playlists: 12 },
+    { username: 'rohan_sounds', email: 'rohan.sounds@gmail.com', password: 'RohanS#789', displayName: 'Rohan Gupta', playlists: 11 },
+    { username: 'meera_playlist', email: 'meera.music@yahoo.com', password: 'Meera@Play1', displayName: 'Meera Joshi', playlists: 10 },
+    { username: 'aditya_mix', email: 'aditya.mix@gmail.com', password: 'AdityaM!234', displayName: 'Aditya Verma', playlists: 9 },
+    { username: 'ishita_songs', email: 'ishita.songs@outlook.com', password: 'Ishita#Song', displayName: 'Ishita Kapoor', playlists: 8 },
+    { username: 'kartik_beats', email: 'kartik.beats@gmail.com', password: 'KartikB@456', displayName: 'Kartik Malhotra', playlists: 7 },
+    { username: 'divya_melody', email: 'divya.melody@hotmail.com', password: 'DivyaM!890', displayName: 'Divya Chopra', playlists: 6 },
+    { username: 'nikhil_trance', email: 'nikhil.trance@gmail.com', password: 'NikhilT#123', displayName: 'Nikhil Saxena', playlists: 5 },
+    { username: 'pooja_vibes', email: 'pooja.vibes@yahoo.com', password: 'PoojaV@567', displayName: 'Pooja Agarwal', playlists: 4 },
+    { username: 'sameer_audio', email: 'sameer.audio@gmail.com', password: 'SameerA!234', displayName: 'Sameer Khan', playlists: 3 },
+    { username: 'neha_tracks', email: 'neha.tracks@outlook.com', password: 'NehaT#890', displayName: 'Neha Desai', playlists: 2 },
+    { username: 'varun_music', email: 'varun.music@gmail.com', password: 'VarunM@111', displayName: 'Varun Bhatt', playlists: 1 },
+    { username: 'shreya_notes', email: 'shreya.notes@hotmail.com', password: 'ShreyaN!999', displayName: 'Shreya Iyer', playlists: 1 }
+  ];
+  
+  const insertUser = db.prepare(`
+    INSERT INTO users (username, email, password_hash, display_name)
+    VALUES (?, ?, ?, ?)
+  `);
+  
+  const insertStats = db.prepare(`
+    INSERT INTO user_stats (user_id, total_playlists, total_tracks_added, last_activity)
+    VALUES (?, ?, ?, datetime('now', '-' || ? || ' hours'))
+  `);
+  
+  for (const user of users) {
+    try {
+      const passwordHash = hashPassword(user.password);
+      const result = insertUser.run(user.username, user.email, passwordHash, user.displayName);
+      
+      // Insert stats with random activity time
+      const hoursAgo = Math.floor(Math.random() * 168); // Random time in last week
+      insertStats.run(result.lastInsertRowid, user.playlists, user.playlists * 15, hoursAgo);
+      
+      console.log(`  ✓ Created user: ${user.username} (${user.playlists} playlists)`);
+    } catch (error: any) {
+      console.log(`  ⚠️ Skipped ${user.username}: ${error.message}`);
+    }
+  }
+  
+  console.log('✅ User seeding complete!');
 }
 
 /**
@@ -343,8 +411,7 @@ export function getLeaderboard(limit: number = 20) {
       u.created_at
     FROM users u
     LEFT JOIN user_stats us ON u.id = us.user_id
-    WHERE COALESCE(us.total_playlists, 0) > 0
-    ORDER BY us.total_playlists DESC
+    ORDER BY COALESCE(us.total_playlists, 0) DESC
     LIMIT ?
   `);
   

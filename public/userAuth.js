@@ -99,7 +99,7 @@ class UserAuth {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Signing In...</span>';
 
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -114,7 +114,7 @@ class UserAuth {
       }
 
       this.setSession(data.token, data.user);
-      window.location.href = '/index.html';
+      window.location.href = '/app.html';
       
     } catch (error) {
       this.showError(error.message);
@@ -145,7 +145,7 @@ class UserAuth {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Creating Account...</span>';
 
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -189,7 +189,7 @@ class UserAuth {
     if (!this.token) return false;
 
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/me', {
+      const response = await fetch('/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${this.token}`
         }
@@ -218,7 +218,7 @@ class UserAuth {
   async logout() {
     if (this.token) {
       try {
-        await fetch('http://127.0.0.1:3001/api/auth/logout', {
+        await fetch('/api/auth/logout', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${this.token}`

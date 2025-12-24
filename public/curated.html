@@ -38,9 +38,12 @@
       <a href="curated.html" class="nav-link active">Curated</a>
       <a href="https://apify.com/viverun/playlistfy" target="_blank" class="nav-link special"><i class="fas fa-bolt nav-icon"></i> Pro</a>
     </div>
-    <div class="nav-badge">
-      <span class="badge-dot"></span>
-      <span>Powered by AI</span>
+    <div class="nav-right">
+      <div id="authButtonContainer"></div>
+      <div class="nav-badge">
+        <span class="badge-dot"></span>
+        <span>Powered by AI</span>
+      </div>
     </div>
   </nav>
 
@@ -487,6 +490,13 @@
       };
       window.location.href = `app.html?prompt=${encodeURIComponent(prompts[type] || prompts['thoda-aur'])}`;
     }
+  </script>
+  <script src="userAuth.js"></script>
+  <script src="auth-button.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      new AuthButton('authButtonContainer');
+    });
   </script>
 </body>
 </html>
