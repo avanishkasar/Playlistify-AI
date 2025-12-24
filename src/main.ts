@@ -41,6 +41,13 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
+
+// Root path serves landing page - MUST be before static middleware
+app.get("/", (_req, res) => {
+  res.sendFile("landing.html", { root: "public" });
+});
+
+// Static files - index.html won't be auto-served at / because of the route above
 app.use(express.static("public"));
 
 // Mount user authentication routes
@@ -48,11 +55,6 @@ app.use("/api/auth", userAuthRoutes);
 
 // Mount admin routes
 app.use("/api/admin", adminRoutes);
-
-// Root path serves landing page
-app.get("/", (_req, res) => {
-  res.sendFile("landing.html", { root: "public" });
-});
 
 app.get("/health", (_req, res) => {
   res.json({ status: "healthy" });
