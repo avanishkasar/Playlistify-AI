@@ -2,6 +2,7 @@ import Database, { Database as DatabaseType } from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import crypto from 'crypto';
+import { existsSync, mkdirSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,8 +20,14 @@ export interface User {
   display_name: string | null;
 }
 
+// Ensure data directory exists
+const dataDir = join(__dirname, '../data');
+if (!existsSync(dataDir)) {
+  mkdirSync(dataDir, { recursive: true });
+}
+
 // Initialize SQLite database
-const db: DatabaseType = new Database(join(__dirname, '../data/playlistify.db'));
+const db: DatabaseType = new Database(join(dataDir, 'playlistify.db'));
 
 // Enable foreign keys
 db.pragma('foreign_keys = ON');
