@@ -979,8 +979,19 @@ export async function getAIMemorySummary(userId: string): Promise<string> {
   try {
     const fingerprint = getTasteFingerprint(userId);
     
-    if (!fingerprint || fingerprint.stats.totalPlaylistsGenerated < 2) {
-      return "I'm still learning your taste! Create a few more playlists and I'll build your musical profile.";
+    // Brand new user with no playlists
+    if (!fingerprint || fingerprint.stats.totalPlaylistsGenerated === 0) {
+      return "Welcome to Playlistify AI! 🎵 Create your first playlist and I'll start learning your unique music taste.";
+    }
+    
+    // User with just 1 playlist
+    if (fingerprint.stats.totalPlaylistsGenerated === 1) {
+      return "Great first playlist! 🎶 Create a few more and I'll start building your personalized music profile.";
+    }
+    
+    // User with 2-3 playlists - still learning
+    if (fingerprint.stats.totalPlaylistsGenerated < 4) {
+      return `I'm getting to know you! You've created ${fingerprint.stats.totalPlaylistsGenerated} playlists. Keep going and I'll unlock deeper insights about your taste.`;
     }
     
     const context = agentMemory.getPersonalizedContext(userId);

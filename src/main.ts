@@ -22,6 +22,7 @@ import {
 import { parseEnhancedIntent, generateExplanation, suggestModifications } from "./intentEngine.js";
 import userAuthRoutes from "./userAuth.js";
 import adminRoutes from "./adminRoutes.js";
+import collabRoutes from "./collabRoutes.js";
 import { incrementPlaylistCount, getLeaderboard } from "./database.js";
 
 const app = express();
@@ -51,17 +52,23 @@ app.use("/api/auth", userAuthRoutes);
 // Mount admin routes
 app.use("/api/admin", adminRoutes);
 
+// Mount collab routes
+app.use("/api/collab", collabRoutes);
+
 app.get("/health", (_req, res) => {
   res.json({ status: "healthy" });
 });
 
-// Public leaderboard endpoint - Top 20 users by playlist count
-app.get("/api/leaderboard", (_req: Request, res: Response) => {
+// Public leaderboard endpoint - supports ?all=true for full list
+app.get("/api/leaderboard", (req: Request, res: Response) => {
   try {
-    const leaderboard = getLeaderboard(20);
+    const showAll = req.query.all === 'true';
+    const limit = showAll ? 1000 : 20; // 1000 is effectively "all"
+    const leaderboard = getLeaderboard(limit);
     res.json({
       success: true,
-      data: leaderboard
+      data: leaderboard,
+      total: leaderboard.length
     });
   } catch (error: any) {
     console.error('[API] Leaderboard error:', error);
@@ -421,6 +428,73 @@ app.get("/api/export-data", (req: Request, res: Response) => {
     const data = agentMemory.exportUserData(userId);
     res.json({ status: 'success', data });
   } catch (err: any) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get personalized user stats for timeline page
+ * Returns playlist count, track count, top genre, and top mood
+ */
+app.get("/api/user-stats", (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+  
+  try {
+    const stats = agentMemory.getUserStats(userId);
+    const userData = agentMemory.exportUserData(userId);
+    
+    // Get top genre from genreAffinities
+    let topGenre = 'None yet';
+    let topMood = 'None yet';
+    
+    if (userData && userData.tasteProfile) {
+      // Find top genre
+      const genreAffinities = userData.tasteProfile.genreAffinities || {};
+      const genres = Object.entries(genreAffinities)
+        .filter(([_, score]) => (score as number) > 0)
+        .sort((a, b) => (b[1] as number) - (a[1] as number));
+      
+      if (genres.length > 0) {
+        // Capitalize first letter
+        topGenre = genres[0][0].charAt(0).toUpperCase() + genres[0][0].slice(1);
+      }
+      
+      // Find top mood from moodAffinities
+      const moodAffinities = userData.tasteProfile.moodAffinities || {};
+      const moods = Object.entries(moodAffinities)
+        .filter(([_, score]) => (score as number) > 0)
+        .sort((a, b) => (b[1] as number) - (a[1] as number));
+      
+      if (moods.length > 0) {
+        // Capitalize first letter
+        topMood = moods[0][0].charAt(0).toUpperCase() + moods[0][0].slice(1);
+      }
+    }
+    
+    // Calculate total tracks from recent playlists
+    let totalTracks = 0;
+    if (userData && userData.recentPlaylists) {
+      userData.recentPlaylists.forEach(playlist => {
+        totalTracks += playlist.trackCount || 0;
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      data: {
+        totalPlaylistsGenerated: stats.totalPlaylistsGenerated || 0,
+        totalTracksLiked: stats.totalTracksLiked || 0,
+        totalTracksSkipped: stats.totalTracksSkipped || 0,
+        totalTracksDiscovered: totalTracks,
+        averagePlaylistRating: stats.averagePlaylistRating || 0,
+        topGenre,
+        topMood,
+        daysSinceFirstUse: stats.daysSinceFirstUse || 0,
+        preferredTimeOfDay: stats.preferredTimeOfDay || null
+      }
+    });
+  } catch (err: any) {
+    console.error('[API] User stats error:', err);
     res.status(500).json({ status: 'error', message: err.message });
   }
 });

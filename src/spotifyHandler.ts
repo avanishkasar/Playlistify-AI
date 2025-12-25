@@ -194,10 +194,15 @@ export async function searchTracks(
       id: t.id,
       name: t.name,
       artists: t.artists.map((a: any) => ({ id: a.id, name: a.name })),
-      album: { id: t.album.id, name: t.album.name },
+      album: { 
+        id: t.album.id, 
+        name: t.album.name,
+        images: t.album.images
+      },
       uri: t.uri,
       external_urls: t.external_urls,
       duration_ms: t.duration_ms,
+      preview_url: t.preview_url,
     }));
 
     const response: MCPResponse = {
@@ -261,10 +266,15 @@ export async function getRecommendations(
       id: t.id,
       name: t.name,
       artists: t.artists.map((a: any) => ({ id: a.id, name: a.name })),
-      album: { id: t.album.id, name: t.album.name },
+      album: { 
+        id: t.album.id, 
+        name: t.album.name,
+        images: t.album.images 
+      },
       uri: t.uri,
       external_urls: t.external_urls,
       duration_ms: t.duration_ms,
+      preview_url: t.preview_url,
     }));
 
     const response: MCPResponse = {

@@ -37,10 +37,15 @@
     </a>
     <div class="nav-links">
       <a href="app.html" class="nav-link active">Home</a>
-      <a href="about.html" class="nav-link">About</a>
+      <a href="collab.html" class="nav-link">Collab</a>
+      <a href="timeline.html" class="nav-link">Timeline</a>
       <a href="how-it-works.html" class="nav-link">How It Works</a>
       <a href="curated.html" class="nav-link">Curated</a>
-      <a href="https://apify.com/viverun/playlistfy" target="_blank" class="nav-link special"><i class="fas fa-bolt nav-icon"></i> Pro</a>
+      <button class="nav-link dj-toggle" id="djModeToggle" onclick="toggleDJMode()">
+        <span class="dj-icon">🎧</span>
+        <span class="dj-text">DJ Mode</span>
+        <span class="dj-status" id="djStatus"></span>
+      </button>
     </div>
     <div class="nav-right">
       <div id="authButtonContainer"></div>
@@ -355,6 +360,22 @@
     // =========================================================================
     // STATE MANAGEMENT - Agentic Playlistify AI
     // =========================================================================
+    
+    // Get initial userId from localStorage (set by auth)
+    function getInitialUserId() {
+      try {
+        const userStr = localStorage.getItem('auth_user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          // Use username as userId for memory (more readable than numeric id)
+          return user.username || user.id?.toString() || 'guest-' + Date.now();
+        }
+      } catch (e) {
+        console.log('Could not load user from storage');
+      }
+      return 'guest-' + Date.now();
+    }
+    
     const state = {
       isGenerating: false,
       selectedMood: 'any',
@@ -366,7 +387,7 @@
       currentMemoryId: null, // Links to agent memory
       lastPrompt: '',
       proactiveSuggestion: null,
-      userId: 'demo-user', // In production, use real auth
+      userId: getInitialUserId(), // Dynamic user ID from auth
       generatedCoverUrl: null,
     };
 
@@ -1212,6 +1233,20 @@
               </div>
               <h2>${playlist.name}</h2>
               <p>${playlist.trackCount || tracks.length} tracks • Just created</p>
+              <div class="playlist-buttons">
+                <a href="${spotifyUrl}" target="_blank" class="open-spotify-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                  </svg>
+                  <span>Open in Spotify</span>
+                </a>
+                <button onclick="playPlaylistHere()" class="play-here-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                  <span>Play Here</span>
+                </button>
+              </div>
               <div class="memory-indicator">
                 <span class="memory-dot"></span>
                 <span>I'm learning your preferences</span>
@@ -1301,13 +1336,6 @@
               </svg>
               <span>Refresh Tracks</span>
             </button>
-            
-            <a href="${spotifyUrl}" target="_blank" class="action-btn primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-              </svg>
-              <span>Open in Spotify</span>
-            </a>
             
             <button class="action-btn tertiary" onclick="resetUI()">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1606,14 +1634,410 @@
       // Always show auth button (login or logout based on state)
       new AuthButton('authButtonContainer');
       
-      // Optional: Show a welcome message for logged-in users
+      // Update state.userId with the actual logged-in user
       if (window.userAuth && window.userAuth.isAuthenticated()) {
         const user = window.userAuth.getUser();
         if (user) {
-          console.log('Welcome back,', user.display_name || user.username);
+          // Use username as userId for memory tracking
+          state.userId = user.username || user.id?.toString() || state.userId;
+          console.log('Welcome back,', user.display_name || user.username, '- userId:', state.userId);
+          
+          // Refresh AI memory summary with correct userId
+          if (state.currentPlaylistData) {
+            fetchAIMemorySummary();
+          }
         }
       }
     });
+  </script>
+
+  <!-- DJ Mode Player Bar -->
+  <div class="dj-player-bar" id="djPlayerBar">
+    <div class="dj-player-content">
+      <div class="dj-now-playing">
+        <div class="dj-album-art" id="djAlbumArt">
+          <img src="" alt="">
+          <div class="dj-visualizer">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="dj-track-info">
+          <span class="dj-track-name" id="djTrackName">No track playing</span>
+          <span class="dj-track-artist" id="djTrackArtist">Enable DJ Mode to start</span>
+        </div>
+      </div>
+      <div class="dj-controls">
+        <button class="dj-ctrl-btn" onclick="djPrevious()" title="Previous">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button class="dj-ctrl-btn dj-play-btn" id="djPlayBtn" onclick="djTogglePlay()" title="Play/Pause">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <button class="dj-ctrl-btn" onclick="djNext()" title="Next">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+      </div>
+      <div class="dj-progress-section">
+        <span class="dj-time" id="djCurrentTime">0:00</span>
+        <div class="dj-progress-bar" onclick="djSeek(event)">
+          <div class="dj-progress" id="djProgress"></div>
+        </div>
+        <span class="dj-time" id="djDuration">0:00</span>
+      </div>
+      <div class="dj-volume">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <input type="range" class="dj-volume-slider" id="djVolume" min="0" max="100" value="80" onchange="djSetVolume(this.value)">
+      </div>
+      <button class="dj-close-btn" onclick="closeDJPlayer()" title="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // DJ MODE - Spotify Web Playback
+    // =========================================================================
+    
+    let djMode = false;
+    let spotifyPlayer = null;
+    let currentDJTrack = null;
+    let djPlaylist = [];
+    let djCurrentIndex = 0;
+    let djAudio = null;
+    
+    // Simple notification function
+    function showNotification(message, type = 'info') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `dj-notification ${type}`;
+      notification.innerHTML = message;
+      notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 1rem 2rem;
+        background: ${type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(29, 185, 84, 0.9)'};
+        color: ${type === 'error' ? '#fff' : '#000'};
+        border-radius: 100px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        z-index: 10000;
+        animation: slideDown 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      `;
+      document.body.appendChild(notification);
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+    
+    // Play playlist directly from the "Play Here" button
+    function playPlaylistHere() {
+      console.log('playPlaylistHere called, state.lastPlaylistData:', state.lastPlaylistData);
+      
+      // Get the playlist URL from the last generated playlist
+      if (!state.lastPlaylistData || !state.lastPlaylistData.playlist) {
+        showNotification('No playlist available to play. Generate a playlist first!', 'error');
+        return;
+      }
+      
+      const playlist = state.lastPlaylistData.playlist;
+      console.log('Playlist data:', playlist);
+      
+      const spotifyUrl = playlist.external_urls?.spotify || playlist.uri;
+      console.log('Spotify URL:', spotifyUrl);
+      
+      if (!spotifyUrl) {
+        showNotification('No Spotify URL available for this playlist', 'error');
+        return;
+      }
+      
+      // Extract playlist ID from URL or URI
+      let playlistId = null;
+      if (spotifyUrl.includes('spotify.com/playlist/')) {
+        playlistId = spotifyUrl.split('/playlist/')[1].split('?')[0];
+      } else if (spotifyUrl.startsWith('spotify:playlist:')) {
+        playlistId = spotifyUrl.split(':')[2];
+      } else if (playlist.id) {
+        // Fallback: use playlist.id directly
+        playlistId = playlist.id;
+      }
+      
+      console.log('Extracted playlistId:', playlistId);
+      
+      if (!playlistId) {
+        showNotification('Could not extract playlist ID', 'error');
+        return;
+      }
+      
+      // Show the Spotify embed player
+      showSpotifyEmbed(playlistId);
+      showNotification('🎵 Spotify player loaded! Press play to start.', 'success');
+    }
+    
+    function showSpotifyEmbed(playlistId) {
+      // Create or update the Spotify embed player sidebar
+      let embedSidebar = document.getElementById('spotifyEmbedSidebar');
+      
+      if (!embedSidebar) {
+        embedSidebar = document.createElement('div');
+        embedSidebar.id = 'spotifyEmbedSidebar';
+        embedSidebar.innerHTML = `
+          <div class="spotify-sidebar-header">
+            <span class="spotify-sidebar-title">🎵 Now Playing</span>
+            <button class="close-sidebar-btn" onclick="closeSpotifyEmbed()">×</button>
+          </div>
+          <div class="spotify-sidebar-content">
+            <iframe 
+              id="spotifyEmbed"
+              src="https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0" 
+              width="100%" 
+              height="100%" 
+              frameBorder="0" 
+              allowfullscreen="" 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy">
+            </iframe>
+          </div>
+        `;
+        document.body.appendChild(embedSidebar);
+        
+        // Add styles if not already present
+        if (!document.getElementById('spotifyEmbedStyles')) {
+          const style = document.createElement('style');
+          style.id = 'spotifyEmbedStyles';
+          style.textContent = `
+            #spotifyEmbedSidebar {
+              position: fixed;
+              top: 0;
+              right: 0;
+              width: 380px;
+              height: 100vh;
+              background: linear-gradient(180deg, #121212 0%, #1a1a2e 100%);
+              z-index: 10000;
+              box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+              display: flex;
+              flex-direction: column;
+              animation: slideInRight 0.3s ease;
+              border-left: 1px solid rgba(255,255,255,0.1);
+            }
+            @keyframes slideInRight {
+              from { transform: translateX(100%); }
+              to { transform: translateX(0); }
+            }
+            @keyframes slideOutRight {
+              from { transform: translateX(0); }
+              to { transform: translateX(100%); }
+            }
+            .spotify-sidebar-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 16px 20px;
+              background: rgba(0,0,0,0.3);
+              border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            .spotify-sidebar-title {
+              color: #1DB954;
+              font-weight: 600;
+              font-size: 16px;
+            }
+            .close-sidebar-btn {
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              border: none;
+              background: rgba(255,255,255,0.1);
+              color: white;
+              font-size: 20px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s ease;
+            }
+            .close-sidebar-btn:hover {
+              background: rgba(255,255,255,0.2);
+              transform: scale(1.1);
+            }
+            .spotify-sidebar-content {
+              flex: 1;
+              padding: 0;
+              overflow: hidden;
+            }
+            .spotify-sidebar-content iframe {
+              border-radius: 0;
+              width: 100%;
+              height: 100%;
+            }
+            @media (max-width: 768px) {
+              #spotifyEmbedSidebar {
+                width: 100%;
+                max-width: 100%;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        // Trigger animation
+        setTimeout(() => embedSidebar.classList.add('visible'), 10);
+      } else {
+        // Update existing embed
+        const iframe = embedSidebar.querySelector('#spotifyEmbed');
+        if (iframe) {
+          iframe.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
+        }
+        embedSidebar.style.display = 'flex';
+        embedSidebar.style.animation = 'slideInRight 0.3s ease';
+      }
+      
+      // Hide the DJ player bar if visible
+      const djPlayerBar = document.getElementById('djPlayerBar');
+      if (djPlayerBar) {
+        djPlayerBar.classList.remove('visible');
+      }
+    }
+    
+    function closeSpotifyEmbed() {
+      const embedSidebar = document.getElementById('spotifyEmbedSidebar');
+      if (embedSidebar) {
+        embedSidebar.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => {
+          embedSidebar.style.display = 'none';
+        }, 280);
+      }
+    }
+    
+    function toggleDJMode() {
+      djMode = !djMode;
+      const toggle = document.getElementById('djModeToggle');
+      const status = document.getElementById('djStatus');
+      const playerBar = document.getElementById('djPlayerBar');
+      
+      if (djMode) {
+        toggle.classList.add('active');
+        status.textContent = 'ON';
+        playerBar.classList.add('visible');
+        // If we have a playlist, load it into DJ mode
+        if (state.lastPlaylistData && state.lastPlaylistData.tracks) {
+          djPlaylist = state.lastPlaylistData.tracks.filter(t => t.preview_url);
+          if (djPlaylist.length > 0) {
+            loadDJTrack(0);
+          }
+        }
+      } else {
+        toggle.classList.remove('active');
+        status.textContent = '';
+        playerBar.classList.remove('visible');
+        if (djAudio) {
+          djAudio.pause();
+        }
+      }
+    }
+    
+    function loadDJTrack(index) {
+      if (index < 0 || index >= djPlaylist.length) return;
+      djCurrentIndex = index;
+      currentDJTrack = djPlaylist[index];
+      
+      document.getElementById('djTrackName').textContent = currentDJTrack.name;
+      document.getElementById('djTrackArtist').textContent = currentDJTrack.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
+      
+      const albumArt = document.getElementById('djAlbumArt').querySelector('img');
+      if (currentDJTrack.album?.images?.[0]?.url) {
+        albumArt.src = currentDJTrack.album.images[0].url;
+        albumArt.style.display = 'block';
+      }
+      
+      // Use preview URL for playback (30 second previews)
+      if (djAudio) {
+        djAudio.pause();
+      }
+      djAudio = new Audio(currentDJTrack.preview_url);
+      djAudio.volume = document.getElementById('djVolume').value / 100;
+      
+      djAudio.addEventListener('timeupdate', updateDJProgress);
+      djAudio.addEventListener('ended', djNext);
+      djAudio.addEventListener('loadedmetadata', () => {
+        document.getElementById('djDuration').textContent = formatTime(djAudio.duration);
+      });
+    }
+    
+    function djTogglePlay() {
+      if (!djAudio) return;
+      const playBtn = document.getElementById('djPlayBtn');
+      
+      if (djAudio.paused) {
+        djAudio.play();
+        playBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+        document.getElementById('djAlbumArt').classList.add('playing');
+      } else {
+        djAudio.pause();
+        playBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+        document.getElementById('djAlbumArt').classList.remove('playing');
+      }
+    }
+    
+    function djNext() {
+      if (djCurrentIndex < djPlaylist.length - 1) {
+        loadDJTrack(djCurrentIndex + 1);
+        djAudio.play();
+        document.getElementById('djPlayBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+        document.getElementById('djAlbumArt').classList.add('playing');
+      }
+    }
+    
+    function djPrevious() {
+      if (djCurrentIndex > 0) {
+        loadDJTrack(djCurrentIndex - 1);
+        djAudio.play();
+        document.getElementById('djPlayBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+        document.getElementById('djAlbumArt').classList.add('playing');
+      }
+    }
+    
+    function updateDJProgress() {
+      if (!djAudio) return;
+      const progress = (djAudio.currentTime / djAudio.duration) * 100;
+      document.getElementById('djProgress').style.width = progress + '%';
+      document.getElementById('djCurrentTime').textContent = formatTime(djAudio.currentTime);
+    }
+    
+    function djSeek(e) {
+      if (!djAudio) return;
+      const bar = e.currentTarget;
+      const percent = e.offsetX / bar.offsetWidth;
+      djAudio.currentTime = percent * djAudio.duration;
+    }
+    
+    function djSetVolume(val) {
+      if (djAudio) {
+        djAudio.volume = val / 100;
+      }
+    }
+    
+    function closeDJPlayer() {
+      djMode = false;
+      document.getElementById('djModeToggle').classList.remove('active');
+      document.getElementById('djStatus').textContent = '';
+      document.getElementById('djPlayerBar').classList.remove('visible');
+      if (djAudio) {
+        djAudio.pause();
+      }
+    }
+    
+    function formatTime(seconds) {
+      if (!seconds || isNaN(seconds)) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
   </script>
 </body>
 </html>

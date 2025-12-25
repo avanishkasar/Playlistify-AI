@@ -214,6 +214,98 @@
         .back-link:hover {
             color: var(--text-primary);
         }
+
+        /* Admin Panel Styles */
+        .admin-panel {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+        }
+
+        .admin-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+
+        .admin-icon {
+            font-size: 1.2rem;
+        }
+
+        .admin-btn {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .user-credentials-list {
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 0.75rem;
+        }
+
+        .user-credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .user-credential-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .user-credential-item .username {
+            color: var(--spotify-green);
+            font-weight: 600;
+        }
+
+        .user-credential-item .password {
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        .user-credentials-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .user-credentials-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .user-credentials-list::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -308,6 +400,19 @@
             
             <div id="errorMessage" class="error-message"></div>
 
+            <!-- Admin Panel (hidden by default, shown only for admin) -->
+            <div id="adminPanel" class="admin-panel" style="display: none;">
+                <div class="admin-header">
+                    <span class="admin-icon">🔐</span>
+                    <span>Admin Controls</span>
+                </div>
+                <button id="viewUsersBtn" class="admin-btn" onclick="showUserCredentials()">
+                    <i class="fas fa-users"></i>
+                    View All User Credentials
+                </button>
+                <div id="userCredentialsList" class="user-credentials-list" style="display: none;"></div>
+            </div>
+
             <div class="benefits-list">
                 <span class="benefit-tag"><i class="fas fa-infinity"></i> Unlimited playlists</span>
                 <span class="benefit-tag"><i class="fas fa-brain"></i> AI powered</span>
@@ -357,11 +462,55 @@
             errorMessage.style.display = 'block';
         }
 
+        // Check if admin credentials
+        function isAdminLogin(username, password) {
+            return username === 'admin' && password === 'admin';
+        }
+
+        // Show user credentials for admin
+        async function showUserCredentials() {
+            const listEl = document.getElementById('userCredentialsList');
+            if (listEl.style.display === 'block') {
+                listEl.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/users-credentials');
+                const data = await response.json();
+                
+                if (data.users && data.users.length > 0) {
+                    listEl.innerHTML = data.users.map(u => `
+                        <div class="user-credential-item">
+                            <span class="username">${u.username}</span>
+                            <span class="password">${u.password}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    listEl.innerHTML = '<div class="user-credential-item">No users found</div>';
+                }
+                listEl.style.display = 'block';
+            } catch (err) {
+                listEl.innerHTML = '<div class="user-credential-item">Failed to load users</div>';
+                listEl.style.display = 'block';
+            }
+        }
+
         // Login form submission
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
+
+            // Check for admin login first
+            if (isAdminLogin(username, password)) {
+                // Show admin panel instead of redirecting
+                document.getElementById('adminPanel').style.display = 'block';
+                formTitle.innerHTML = 'Admin <span class="highlight">Panel</span>';
+                formSubtitle.textContent = 'You have admin access';
+                loginForm.style.display = 'none';
+                return;
+            }
 
             try {
                 const response = await fetch('/api/auth/login', {

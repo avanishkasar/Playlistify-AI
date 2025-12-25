@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Music Timeline - Playlistify AI</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth.css">
+  <style>
+    .page-container {
+      min-height: 100vh;
+      padding: 2rem;
+      padding-top: 100px;
+    }
+    
+    .timeline-hero {
+      text-align: center;
+      padding: 3rem 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .timeline-hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #a855f7, var(--spotify-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .timeline-hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+    
+    /* Stats Overview */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto 3rem;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-4px);
+    }
+    
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    
+    /* Timeline Section */
+    .timeline-section {
+      max-width: 900px;
+      margin: 0 auto 3rem;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+    
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .timeline-filter {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 100px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: var(--spotify-green);
+      border-color: var(--spotify-green);
+      color: #000;
+    }
+    
+    /* Timeline Visual */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--spotify-green), #8b5cf6, #3b82f6);
+      border-radius: 2px;
+    }
+    
+    .timeline-item {
+      position: relative;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .timeline-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--spotify-green);
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      top: 1.75rem;
+      width: 12px;
+      height: 12px;
+      background: var(--spotify-green);
+      border-radius: 50%;
+      border: 3px solid #0a0a0a;
+      transform: translateX(-5px);
+    }
+    
+    .timeline-date {
+      font-size: 0.8rem;
+      color: var(--spotify-green);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .timeline-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .timeline-description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    
+    .timeline-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .timeline-tag {
+      padding: 0.3rem 0.75rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .timeline-tag.mood {
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
+    }
+    
+    .timeline-tag.genre {
+      background: rgba(29, 185, 84, 0.2);
+      color: var(--spotify-green);
+    }
+    
+    .timeline-tag.tracks {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+    }
+    
+    /* Evolution Charts */
+    .charts-section {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+    }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .chart-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .chart-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .chart-period {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    
+    /* Mini bar chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      height: 120px;
+      padding: 0.5rem 0;
+    }
+    
+    .bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .bar {
+      width: 100%;
+      max-width: 40px;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, var(--spotify-green), rgba(29, 185, 84, 0.3));
+      transition: height 0.5s ease;
+    }
+    
+    .bar-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    
+    /* Genre breakdown */
+    .genre-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .genre-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .genre-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    
+    .genre-info {
+      flex: 1;
+    }
+    
+    .genre-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .genre-bar-container {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 0.25rem;
+    }
+    
+    .genre-bar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    
+    .genre-percent {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    
+    /* Mood Evolution */
+    .mood-evolution {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+    }
+    
+    .mood-point {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .mood-emoji {
+      font-size: 1.5rem;
+    }
+    
+    .mood-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    
+    .mood-line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, var(--spotify-green), #8b5cf6);
+      margin: 0 0.5rem;
+      opacity: 0.5;
+    }
+    
+    /* Insights */
+    .insights-card {
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.1), rgba(139, 92, 246, 0.1));
+      border: 1px solid rgba(29, 185, 84, 0.3);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .insights-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    
+    .insights-text {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    .insights-highlight {
+      color: var(--spotify-green);
+      font-weight: 600;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-muted);
+    }
+    
+    .empty-state .icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+    
+    .empty-state p {
+      max-width: 400px;
+      margin: 0 auto 1.5rem;
+    }
+    
+    .empty-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, var(--spotify-green), #1ed760);
+      color: #000;
+      border-radius: 100px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .empty-cta:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(29, 185, 84, 0.4);
+    }
+    
+    /* Leaderboard Styles */
+    .leaderboard-section {
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+    
+    .leaderboard-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+    
+    .leaderboard-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 0.5rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .leaderboard-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .leaderboard-item.top-3 {
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.1), rgba(139, 92, 246, 0.1));
+    }
+    
+    .lb-rank {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    
+    .lb-rank.gold { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+    .lb-rank.silver { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: #000; }
+    .lb-rank.bronze { background: linear-gradient(135deg, #CD7F32, #B87333); color: #fff; }
+    
+    .lb-user-info {
+      flex: 1;
+    }
+    
+    .lb-username {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .lb-badge {
+      font-size: 0.75rem;
+      color: var(--spotify-green);
+    }
+    
+    .lb-count {
+      font-weight: 700;
+      color: var(--spotify-green);
+    }
+    
+    /* User Position Card */
+    .user-position-card {
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.15), rgba(139, 92, 246, 0.15));
+      border: 1px solid var(--spotify-green);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .user-position-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    
+    .user-position-rank {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--spotify-green);
+      line-height: 1;
+    }
+    
+    .user-position-rank span {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+    }
+    
+    .user-position-info {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    
+    /* Show All Button */
+    .show-all-btn {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .show-all-btn:hover {
+      background: rgba(29, 185, 84, 0.1);
+      border-color: var(--spotify-green);
+      color: var(--spotify-green);
+    }
+    
+    .leaderboard-item.current-user {
+      background: rgba(29, 185, 84, 0.15);
+      border: 1px solid var(--spotify-green);
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cursor Glow Effect -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <!-- Animated Gradient Background -->
+  <div class="gradient-bg">
+    <div class="gradient-overlay"></div>
+    <div class="gradient-blob blob-1"></div>
+    <div class="gradient-blob blob-2"></div>
+    <div class="gradient-blob blob-3"></div>
+    <div class="gradient-blob blob-4"></div>
+    <div class="noise-overlay"></div>
+  </div>
+  
+  <!-- Navigation -->
+  <nav>
+    <a href="/" class="logo">
+      <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
+      <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="app.html" class="nav-link">Home</a>
+      <a href="collab.html" class="nav-link">Collab</a>
+      <a href="timeline.html" class="nav-link active">Timeline</a>
+      <a href="how-it-works.html" class="nav-link">How It Works</a>
+      <a href="curated.html" class="nav-link">Curated</a>
+    </div>
+    <div class="nav-right">
+      <div id="authButtonContainer"></div>
+      <div class="nav-badge">
+        <span class="badge-dot"></span>
+        <span>Powered by AI</span>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="page-container">
+    <section class="timeline-hero">
+      <h1>📊 Your Music Evolution</h1>
+      <p>Watch how your musical taste has evolved over time. Every playlist tells a story of your journey.</p>
+    </section>
+    
+    <!-- Stats Overview -->
+    <section class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-icon">🎵</div>
+        <div class="stat-value" id="totalPlaylists">0</div>
+        <div class="stat-label">Playlists Created</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎧</div>
+        <div class="stat-value" id="totalTracks">0</div>
+        <div class="stat-label">Tracks Discovered</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎭</div>
+        <div class="stat-value" id="topGenre">-</div>
+        <div class="stat-label">Top Genre</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✨</div>
+        <div class="stat-value" id="topMood">-</div>
+        <div class="stat-label">Favorite Mood</div>
+      </div>
+    </section>
+    
+    <!-- Charts Section -->
+    <section class="charts-section">
+      <div class="section-header">
+        <h2>📈 Your Listening Patterns</h2>
+      </div>
+      
+      <div class="charts-grid">
+        <!-- Activity Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Weekly Activity</span>
+            <span class="chart-period">Last 4 weeks</span>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-item">
+              <div class="bar" style="height: 60%;"></div>
+              <span class="bar-label">W1</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar" style="height: 80%;"></div>
+              <span class="bar-label">W2</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar" style="height: 45%;"></div>
+              <span class="bar-label">W3</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar" style="height: 100%;"></div>
+              <span class="bar-label">W4</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Genre Breakdown -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Genre Breakdown</span>
+            <span class="chart-period">All time</span>
+          </div>
+          <div class="genre-list">
+            <div class="genre-item">
+              <div class="genre-icon" style="background: rgba(29, 185, 84, 0.2);">🎸</div>
+              <div class="genre-info">
+                <div class="genre-name">Indie / Alternative</div>
+                <div class="genre-bar-container">
+                  <div class="genre-bar" style="width: 75%; background: var(--spotify-green);"></div>
+                </div>
+              </div>
+              <span class="genre-percent">75%</span>
+            </div>
+            <div class="genre-item">
+              <div class="genre-icon" style="background: rgba(139, 92, 246, 0.2);">🎹</div>
+              <div class="genre-info">
+                <div class="genre-name">Electronic</div>
+                <div class="genre-bar-container">
+                  <div class="genre-bar" style="width: 55%; background: #8b5cf6;"></div>
+                </div>
+              </div>
+              <span class="genre-percent">55%</span>
+            </div>
+            <div class="genre-item">
+              <div class="genre-icon" style="background: rgba(59, 130, 246, 0.2);">🎤</div>
+              <div class="genre-info">
+                <div class="genre-name">Pop</div>
+                <div class="genre-bar-container">
+                  <div class="genre-bar" style="width: 40%; background: #3b82f6;"></div>
+                </div>
+              </div>
+              <span class="genre-percent">40%</span>
+            </div>
+            <div class="genre-item">
+              <div class="genre-icon" style="background: rgba(251, 146, 60, 0.2);">🎷</div>
+              <div class="genre-info">
+                <div class="genre-name">Jazz / Soul</div>
+                <div class="genre-bar-container">
+                  <div class="genre-bar" style="width: 25%; background: #f97316;"></div>
+                </div>
+              </div>
+              <span class="genre-percent">25%</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mood Evolution -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Mood Journey</span>
+            <span class="chart-period">This month</span>
+          </div>
+          <div class="mood-evolution">
+            <div class="mood-point">
+              <span class="mood-emoji">😌</span>
+              <span class="mood-label">Week 1</span>
+            </div>
+            <div class="mood-line"></div>
+            <div class="mood-point">
+              <span class="mood-emoji">🔥</span>
+              <span class="mood-label">Week 2</span>
+            </div>
+            <div class="mood-line"></div>
+            <div class="mood-point">
+              <span class="mood-emoji">💜</span>
+              <span class="mood-label">Week 3</span>
+            </div>
+            <div class="mood-line"></div>
+            <div class="mood-point">
+              <span class="mood-emoji">✨</span>
+              <span class="mood-label">Now</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Discovery Score -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Discovery Score</span>
+            <span class="chart-period">How adventurous are you?</span>
+          </div>
+          <div style="text-align: center; padding: 1rem 0;">
+            <div style="font-size: 3rem; font-weight: 800; color: var(--spotify-green);">78%</div>
+            <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Explorer Level</div>
+            <div style="margin-top: 1rem; padding: 0.5rem 1rem; background: rgba(29, 185, 84, 0.1); border-radius: 100px; display: inline-block; color: var(--spotify-green); font-size: 0.85rem;">🚀 Top 15% of users</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+      <div class="section-header">
+        <h2>🕐 Playlist Timeline</h2>
+        <div class="timeline-filter">
+          <button class="filter-btn active">All</button>
+          <button class="filter-btn">This Week</button>
+          <button class="filter-btn">This Month</button>
+        </div>
+      </div>
+      
+      <div class="timeline" id="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">Today, 2:30 PM</div>
+          <div class="timeline-title">Late Night Coding Vibes</div>
+          <div class="timeline-description">
+            Created a focus playlist for deep work sessions. Mix of lo-fi beats and ambient electronic.
+          </div>
+          <div class="timeline-tags">
+            <span class="timeline-tag mood">🧘 Focus</span>
+            <span class="timeline-tag genre">Electronic</span>
+            <span class="timeline-tag tracks">25 tracks</span>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-date">Yesterday, 8:15 PM</div>
+          <div class="timeline-title">Weekend Party Starter</div>
+          <div class="timeline-description">
+            High energy mix for the house party. Heavy on dance and pop bangers!
+          </div>
+          <div class="timeline-tags">
+            <span class="timeline-tag mood">🔥 Energetic</span>
+            <span class="timeline-tag genre">Dance Pop</span>
+            <span class="timeline-tag tracks">32 tracks</span>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-date">Dec 15, 2024</div>
+          <div class="timeline-title">Morning Coffee & Jazz</div>
+          <div class="timeline-description">
+            Smooth jazz and acoustic tracks for peaceful mornings. Perfect for slow starts.
+          </div>
+          <div class="timeline-tags">
+            <span class="timeline-tag mood">☕ Relaxed</span>
+            <span class="timeline-tag genre">Jazz</span>
+            <span class="timeline-tag tracks">18 tracks</span>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-date">Dec 10, 2024</div>
+          <div class="timeline-title">Gym Beast Mode</div>
+          <div class="timeline-description">
+            Intense workout playlist with hip-hop and EDM drops. Maximum energy for leg day.
+          </div>
+          <div class="timeline-tags">
+            <span class="timeline-tag mood">💪 Intense</span>
+            <span class="timeline-tag genre">Hip-Hop / EDM</span>
+            <span class="timeline-tag tracks">28 tracks</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- AI Insights -->
+    <section class="timeline-section">
+      <div class="insights-card">
+        <div class="insights-title">🤖 AI Insights</div>
+        <div class="insights-text">
+          Your music taste has become <span class="insights-highlight">15% more adventurous</span> this month! 
+          You've been exploring more <span class="insights-highlight">indie electronic</span> and 
+          <span class="insights-highlight">lo-fi</span> genres compared to last month. 
+          Your peak listening time is around <span class="insights-highlight">10 PM</span> — 
+          looks like you're a night owl! 🦉
+        </div>
+      </div>
+    </section>
+    
+    <!-- Leaderboard Section -->
+    <section class="leaderboard-section">
+      <div class="section-header">
+        <h2>🏆 Top Playlist Creators</h2>
+      </div>
+      
+      <!-- User's Position Card -->
+      <div id="userPositionCard" class="user-position-card" style="display: none;">
+        <div class="user-position-label">Your Current Ranking</div>
+        <div class="user-position-rank">#<span id="userRank">-</span></div>
+        <div class="user-position-info">with <span id="userPlaylistCount">0</span> playlists created</div>
+      </div>
+      
+      <div class="leaderboard-card">
+        <div class="leaderboard-header">
+          <span>Rank</span>
+          <span style="flex: 1; text-align: left; padding-left: 3rem;">User</span>
+          <span>Playlists</span>
+        </div>
+        <div id="leaderboard-items">
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+            Loading leaderboard...
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+    
+    // Animate stats on load
+    function animateValue(id, start, end, duration) {
+      const obj = document.getElementById(id);
+      if (!obj) return;
+      
+      const range = end - start;
+      const startTime = performance.now();
+      
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        const current = Math.floor(start + range * easeOut);
+        obj.textContent = current;
+        
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      
+      requestAnimationFrame(update);
+    }
+    
+    // Track if we've loaded real data
+    let realDataLoaded = false;
+    
+    // Try to load real user stats first
+    async function loadUserStats() {
+      try {
+        // Get userId from auth
+        let userId = 'demo-user';
+        const userStr = localStorage.getItem('auth_user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            userId = user.username || user.id || 'demo-user';
+          } catch (e) {}
+        }
+        
+        const response = await fetch(`/api/user-stats?userId=${encodeURIComponent(userId)}`);
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.status === 'success' && result.data) {
+            const data = result.data;
+            realDataLoaded = true;
+            
+            // Update stats with real values
+            const playlistCount = data.totalPlaylistsGenerated || 0;
+            const trackCount = data.totalTracksDiscovered || 0;
+            const topGenre = data.topGenre || 'None yet';
+            const topMood = data.topMood || 'None yet';
+            
+            // Animate to real values
+            animateValue('totalPlaylists', 0, playlistCount, 1000);
+            animateValue('totalTracks', 0, trackCount, 1500);
+            
+            // Set text values directly for non-numeric stats
+            document.getElementById('topGenre').textContent = topGenre;
+            document.getElementById('topMood').textContent = topMood;
+            
+            console.log('[Timeline] Loaded real user stats:', data);
+            return true;
+          }
+        }
+      } catch (e) {
+        console.log('[Timeline] Could not load user stats:', e);
+      }
+      return false;
+    }
+    
+    // Animate on page load - use demo values only if real data fails
+    setTimeout(async () => {
+      const loaded = await loadUserStats();
+      if (!loaded) {
+        // Fall back to demo values
+        animateValue('totalPlaylists', 0, 0, 1000);
+        animateValue('totalTracks', 0, 0, 1500);
+        document.getElementById('topGenre').textContent = 'None yet';
+        document.getElementById('topMood').textContent = 'None yet';
+      }
+    }, 500);
+    
+    // Leaderboard state
+    let allLeaderboardData = [];
+    let showingAll = false;
+    let currentUsername = null;
+    
+    // Get current username from auth
+    function getCurrentUsername() {
+      if (window.userAuth && window.userAuth.isAuthenticated()) {
+        const user = window.userAuth.getUser();
+        return user?.username || null;
+      }
+      const userStr = localStorage.getItem('auth_user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          return user.username || null;
+        } catch (e) {}
+      }
+      return null;
+    }
+    
+    // Find user's position in leaderboard
+    function findUserPosition(users, username) {
+      if (!username) return null;
+      const index = users.findIndex(u => 
+        u.username?.toLowerCase() === username.toLowerCase()
+      );
+      if (index === -1) return null;
+      return {
+        rank: index + 1,
+        user: users[index]
+      };
+    }
+    
+    // Show user's position card
+    function showUserPosition(position) {
+      const card = document.getElementById('userPositionCard');
+      if (!position) {
+        card.style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('userRank').textContent = position.rank;
+      document.getElementById('userPlaylistCount').textContent = position.user.playlist_count || 0;
+      card.style.display = 'block';
+    }
+    
+    // Render leaderboard items
+    function renderLeaderboard(users, showAll = false) {
+      const container = document.getElementById('leaderboard-items');
+      const displayUsers = showAll ? users : users.slice(0, 10);
+      
+      let html = displayUsers.map((user, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+        const topClass = rank <= 3 ? 'top-3' : '';
+        const badge = rank === 1 ? '👑 Champion' : rank <= 3 ? '🌟 Top Creator' : '';
+        const isCurrentUser = currentUsername && user.username?.toLowerCase() === currentUsername.toLowerCase();
+        const userClass = isCurrentUser ? 'current-user' : '';
+        
+        return `
+          <div class="leaderboard-item ${topClass} ${userClass}">
+            <div class="lb-rank ${rankClass}">${rank}</div>
+            <div class="lb-user-info">
+              <div class="lb-username">${user.username || user.display_name || 'Anonymous'}${isCurrentUser ? ' (You)' : ''}</div>
+              ${badge ? `<div class="lb-badge">${badge}</div>` : ''}
+            </div>
+            <div class="lb-count">${user.playlist_count || 0}</div>
+          </div>
+        `;
+      }).join('');
+      
+      // Add Show All / Show Less button
+      if (users.length > 10) {
+        html += `
+          <button class="show-all-btn" onclick="toggleShowAll()">
+            ${showAll ? '👆 Show Less' : `👇 Show All (${users.length} users)`}
+          </button>
+        `;
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    // Toggle show all users
+    function toggleShowAll() {
+      showingAll = !showingAll;
+      renderLeaderboard(allLeaderboardData, showingAll);
+    }
+    
+    // Load leaderboard
+    async function loadLeaderboard() {
+      const container = document.getElementById('leaderboard-items');
+      currentUsername = getCurrentUsername();
+      
+      try {
+        // Always fetch all users to find current user's position
+        const response = await fetch('/api/leaderboard?all=true');
+        const data = await response.json();
+        
+        if (!data.success || !data.data || data.data.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎵</div>
+              <p>No leaderboard data yet</p>
+            </div>
+          `;
+          return;
+        }
+        
+        allLeaderboardData = data.data;
+        
+        // Find and show current user's position
+        const userPosition = findUserPosition(allLeaderboardData, currentUsername);
+        showUserPosition(userPosition);
+        
+        // Render leaderboard (initially show top 10)
+        renderLeaderboard(allLeaderboardData, showingAll);
+        
+      } catch (e) {
+        console.error('Failed to load leaderboard:', e);
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            <p>Could not load leaderboard</p>
+          </div>
+        `;
+      }
+    }
+    
+    loadLeaderboard();
+  </script>
+  
+  <!-- Cursor Glow Effect -->
+  <script src="cursor.js"></script>
+  
+  <!-- Auth Scripts -->
+  <script src="userAuth.js"></script>
+  <script src="auth-button.js"></script>
+  <script>
+    // Initialize auth button
+    document.addEventListener('DOMContentLoaded', () => {
+      new AuthButton('authButtonContainer');
+    });
+  </script>
+</body>
+</html>
