@@ -3115,32 +3115,34 @@
           </div>
         `;
       }).join('');
+    }
 
-      function djNext() {
-        if (djCurrentIndex < djPlaylist.length - 1) {
-          loadDJTrack(djCurrentIndex + 1);
-        }
+    // DJ Navigation functions - must be global for onclick handlers
+    function djNext() {
+      if (djCurrentIndex < djPlaylist.length - 1) {
+        loadDJTrack(djCurrentIndex + 1);
       }
+    }
 
-      function djPrevious() {
-        if (djCurrentIndex > 0) {
-          loadDJTrack(djCurrentIndex - 1);
-        }
+    function djPrevious() {
+      if (djCurrentIndex > 0) {
+        loadDJTrack(djCurrentIndex - 1);
       }
+    }
 
-      function closeDJPlayer() {
-        djMode = false;
-        document.getElementById('djModeToggle').classList.remove('active');
-        document.getElementById('djStatus').textContent = '';
-        document.getElementById('djSidebar').style.display = 'none';
-      }
+    function closeDJPlayer() {
+      djMode = false;
+      document.getElementById('djModeToggle').classList.remove('active');
+      document.getElementById('djStatus').textContent = '';
+      document.getElementById('djSidebar').style.display = 'none';
+    }
 
-      function formatTime(seconds) {
-        if (!seconds || isNaN(seconds)) return '0:00';
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-      }
+    function formatTime(seconds) {
+      if (!seconds || isNaN(seconds)) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
   </script>
 </body>
 

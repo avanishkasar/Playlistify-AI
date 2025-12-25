@@ -41,10 +41,92 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));  // Allow larger payloads for audio
 
 // Static files - index.html (landing page) will auto-serve at /
 app.use(express.static("public"));
+
+// =========================================================================
+// SPEECH-TO-TEXT using OpenRouter + Gemini (via existing API key)
+// =========================================================================
+app.post("/api/speech-to-text", async (req: Request, res: Response) => {
+  try {
+    const { audioData, mimeType = 'audio/webm' } = req.body;
+    
+    if (!audioData) {
+      res.status(400).json({ success: false, error: 'No audio data provided' });
+      return;
+    }
+    
+    console.log('[Speech-to-Text] Processing audio, mimeType:', mimeType);
+    
+    // Use OpenRouter API with Gemini model (same as aiService)
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+    
+    if (!OPENROUTER_API_KEY) {
+      console.error('[Speech-to-Text] No OpenRouter API key found');
+      res.status(500).json({ success: false, error: 'API key not configured' });
+      return;
+    }
+    
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://playlistify-ai.app',
+        'X-Title': 'Playlistify AI Voice',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-flash-001',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Transcribe this audio exactly. Return ONLY the transcribed text, nothing else. No quotes, no explanation, just the words spoken.'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${audioData}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.1,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Speech-to-Text] OpenRouter error:', response.status, errorText);
+      res.status(500).json({ success: false, error: `API error: ${response.status}` });
+      return;
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content?.trim() || '';
+    
+    console.log('[Speech-to-Text] Transcribed:', text);
+    
+    res.json({ 
+      success: true, 
+      text: text,
+      message: 'Audio transcribed successfully'
+    });
+    
+  } catch (error: any) {
+    console.error('[Speech-to-Text] Error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Transcription failed'
+    });
+  }
+});
 
 // Mount user authentication routes
 app.use("/api/auth", userAuthRoutes);
