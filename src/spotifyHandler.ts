@@ -456,5 +456,97 @@ export async function addTracksToPlaylist(playlistId: string, trackUris: string[
   }
 }
 
-export default { searchTracks, getRecommendations, createPlaylist, initializeSpotify, setPlaylistCover, addTracksToPlaylist };
+/**
+ * Get audio features for multiple tracks
+ * Returns tempo, energy, danceability, valence, key, mode for each track
+ */
+export async function getAudioFeatures(trackIds: string[]): Promise<MCPResponse> {
+  try {
+    await ensureAccessToken();
+    
+    if (!trackIds || trackIds.length === 0) {
+      return { status: 'error', message: 'No track IDs provided' };
+    }
+    
+    // Spotify allows up to 100 tracks per request
+    const allFeatures: any[] = [];
+    
+    for (let i = 0; i < trackIds.length; i += 100) {
+      const chunk = trackIds.slice(i, i + 100);
+      const response = await spotifyApi.getAudioFeaturesForTracks(chunk);
+      if (response.body.audio_features) {
+        allFeatures.push(...response.body.audio_features);
+      }
+    }
+    
+    console.log('Audio features fetched', { trackCount: allFeatures.length });
+    
+    return {
+      status: 'success',
+      data: { audioFeatures: allFeatures },
+      timestamp: new Date().toISOString(),
+    };
+    
+  } catch (err: any) {
+    console.error('Get audio features failed:', err?.message || err);
+    return {
+      status: 'error',
+      message: `Get audio features failed: ${err?.message || String(err)}`,
+    };
+  }
+}
+
+/**
+ * Get tracks from a playlist
+ */
+export async function getPlaylistTracks(playlistId: string): Promise<MCPResponse> {
+  try {
+    await ensureAccessToken();
+    
+    const tracks: any[] = [];
+    let offset = 0;
+    const limit = 100;
+    
+    // Paginate through all tracks
+    while (true) {
+      const response = await spotifyApi.getPlaylistTracks(playlistId, { offset, limit });
+      const items = response.body.items;
+      
+      if (!items || items.length === 0) break;
+      
+      tracks.push(...items.map(item => ({
+        id: item.track?.id,
+        uri: item.track?.uri,
+        name: item.track?.name,
+        artists: item.track?.artists?.map((a: any) => ({ name: a.name, id: a.id })),
+        album: {
+          name: item.track?.album?.name,
+          images: item.track?.album?.images
+        },
+        duration_ms: item.track?.duration_ms,
+        preview_url: item.track?.preview_url
+      })));
+      
+      if (items.length < limit) break;
+      offset += limit;
+    }
+    
+    console.log('Playlist tracks fetched', { playlistId, trackCount: tracks.length });
+    
+    return {
+      status: 'success',
+      data: { tracks },
+      timestamp: new Date().toISOString(),
+    };
+    
+  } catch (err: any) {
+    console.error('Get playlist tracks failed:', err?.message || err);
+    return {
+      status: 'error',
+      message: `Get playlist tracks failed: ${err?.message || String(err)}`,
+    };
+  }
+}
+
+export default { searchTracks, getRecommendations, createPlaylist, initializeSpotify, setPlaylistCover, addTracksToPlaylist, getAudioFeatures, getPlaylistTracks };
 

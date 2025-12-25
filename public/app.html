@@ -1694,6 +1694,263 @@
     </div>
   </div>
 
+  <!-- DJ Mode Playlist Selection Modal -->
+  <div class="dj-modal-overlay" id="djModal" style="display: none;">
+    <div class="dj-modal">
+      <div class="dj-modal-header">
+        <h2>🎧 DJ Mode - Select Playlists</h2>
+        <p>Choose up to 2 playlists to mix together</p>
+        <button class="dj-modal-close" onclick="closeDJModal()">×</button>
+      </div>
+      <div class="dj-modal-body">
+        <div class="dj-selection-info" id="djSelectionInfo">
+          <span class="selection-count">0 / 2 playlists selected</span>
+        </div>
+        <div class="dj-playlists-grid" id="djPlaylistsGrid">
+          <div class="dj-loading">Loading your playlists...</div>
+        </div>
+      </div>
+      <div class="dj-modal-footer">
+        <div class="dj-selected-preview" id="djSelectedPreview"></div>
+        <button class="dj-mix-btn" id="djMixBtn" onclick="startDJMix()" disabled>
+          <span class="mix-icon">🎛️</span>
+          <span>Start DJ Mix</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* DJ Mode Modal Styles */
+    .dj-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .dj-modal {
+      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .dj-modal-header {
+      padding: 24px 28px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+    .dj-modal-header h2 {
+      margin: 0 0 8px 0;
+      color: #1DB954;
+      font-size: 24px;
+    }
+    .dj-modal-header p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+    }
+    .dj-modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .dj-modal-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+    .dj-modal-body {
+      padding: 20px 28px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .dj-selection-info {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(29, 185, 84, 0.1);
+      border-radius: 10px;
+      border: 1px solid rgba(29, 185, 84, 0.3);
+    }
+    .selection-count {
+      color: #1DB954;
+      font-weight: 600;
+    }
+    .dj-playlists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .dj-playlist-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+    .dj-playlist-card:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+    .dj-playlist-card.selected {
+      border-color: #1DB954;
+      background: rgba(29, 185, 84, 0.15);
+    }
+    .dj-playlist-card.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .dj-playlist-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dj-playlist-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .dj-playlist-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .dj-playlist-tag.mood {
+      background: rgba(156, 39, 176, 0.2);
+      color: #ce93d8;
+    }
+    .dj-playlist-tag.energy {
+      background: rgba(255, 152, 0, 0.2);
+      color: #ffb74d;
+    }
+    .dj-playlist-stats {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .dj-modal-footer {
+      padding: 20px 28px;
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .dj-selected-preview {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .dj-selected-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(29, 185, 84, 0.2);
+      border-radius: 20px;
+      font-size: 13px;
+      color: #1DB954;
+    }
+    .dj-mix-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+      border: none;
+      border-radius: 30px;
+      color: black;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .dj-mix-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(29, 185, 84, 0.4);
+    }
+    .dj-mix-btn:disabled {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.4);
+      cursor: not-allowed;
+    }
+    .dj-loading {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .dj-empty-state {
+      text-align: center;
+      padding: 40px;
+    }
+    .dj-empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .dj-empty-state p {
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0 0 16px 0;
+    }
+    .dj-empty-state a {
+      color: #1DB954;
+      text-decoration: none;
+    }
+    /* DJ Phase indicators */
+    .dj-track-phase {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .dj-track-phase.warmup { background: #3b82f6; color: white; }
+    .dj-track-phase.build { background: #f59e0b; color: black; }
+    .dj-track-phase.peak { background: #ef4444; color: white; }
+    .dj-track-phase.cooldown { background: #8b5cf6; color: white; }
+  </style>
+
   <script>
     // =========================================================================
     // DJ MODE - Spotify Web Playback
@@ -1914,29 +2171,216 @@
       }
     }
     
+    // DJ Mode state
+    let djSelectedPlaylists = [];
+    let djUserPlaylists = [];
+    
     function toggleDJMode() {
-      djMode = !djMode;
+      // Open the DJ mode modal to select playlists
+      openDJModal();
+    }
+    
+    function openDJModal() {
+      const modal = document.getElementById('djModal');
+      modal.style.display = 'flex';
+      djSelectedPlaylists = [];
+      updateDJSelectionUI();
+      loadDJPlaylists();
+    }
+    
+    function closeDJModal() {
+      const modal = document.getElementById('djModal');
+      modal.style.display = 'none';
+    }
+    
+    async function loadDJPlaylists() {
+      const grid = document.getElementById('djPlaylistsGrid');
+      grid.innerHTML = '<div class="dj-loading">Loading your playlists...</div>';
+      
+      // Get userId from auth
+      let userId = 'demo-user';
+      const userStr = localStorage.getItem('auth_user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          userId = user.username || user.id || 'demo-user';
+        } catch (e) {}
+      }
+      
+      try {
+        const response = await fetch(`/api/dj/playlists?userId=${encodeURIComponent(userId)}`);
+        const result = await response.json();
+        
+        if (result.status === 'success' && result.data?.playlists?.length > 0) {
+          djUserPlaylists = result.data.playlists;
+          renderDJPlaylists(djUserPlaylists);
+        } else {
+          grid.innerHTML = `
+            <div class="dj-empty-state">
+              <div class="empty-icon">🎵</div>
+              <p>No playlists found!</p>
+              <p>Create some playlists first to use DJ Mode.</p>
+              <a href="app.html">Generate a playlist</a>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Failed to load DJ playlists:', err);
+        grid.innerHTML = `
+          <div class="dj-empty-state">
+            <div class="empty-icon">⚠️</div>
+            <p>Failed to load playlists</p>
+          </div>
+        `;
+      }
+    }
+    
+    function renderDJPlaylists(playlists) {
+      const grid = document.getElementById('djPlaylistsGrid');
+      
+      grid.innerHTML = playlists.map(playlist => `
+        <div class="dj-playlist-card ${djSelectedPlaylists.includes(playlist.playlistId) ? 'selected' : ''}" 
+             data-playlist-id="${playlist.playlistId}"
+             onclick="togglePlaylistSelection('${playlist.playlistId}')">
+          <div class="dj-playlist-name">${playlist.name}</div>
+          <div class="dj-playlist-meta">
+            ${playlist.mood ? `<span class="dj-playlist-tag mood">${playlist.mood}</span>` : ''}
+            ${playlist.energy ? `<span class="dj-playlist-tag energy">${playlist.energy}</span>` : ''}
+          </div>
+          <div class="dj-playlist-stats">
+            ${playlist.trackCount} tracks • ${playlist.genres?.slice(0, 2).join(', ') || 'Various'}
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function togglePlaylistSelection(playlistId) {
+      const index = djSelectedPlaylists.indexOf(playlistId);
+      
+      if (index > -1) {
+        // Remove from selection
+        djSelectedPlaylists.splice(index, 1);
+      } else {
+        // Add to selection (max 2)
+        if (djSelectedPlaylists.length >= 2) {
+          showNotification('Maximum 2 playlists can be selected for mixing', 'warning');
+          return;
+        }
+        djSelectedPlaylists.push(playlistId);
+      }
+      
+      updateDJSelectionUI();
+    }
+    
+    function updateDJSelectionUI() {
+      // Update selection count
+      document.getElementById('djSelectionInfo').innerHTML = `
+        <span class="selection-count">${djSelectedPlaylists.length} / 2 playlists selected</span>
+      `;
+      
+      // Update card states
+      document.querySelectorAll('.dj-playlist-card').forEach(card => {
+        const playlistId = card.dataset.playlistId;
+        if (djSelectedPlaylists.includes(playlistId)) {
+          card.classList.add('selected');
+        } else {
+          card.classList.remove('selected');
+          // Disable if 2 already selected
+          if (djSelectedPlaylists.length >= 2) {
+            card.classList.add('disabled');
+          } else {
+            card.classList.remove('disabled');
+          }
+        }
+      });
+      
+      // Update selected preview
+      const preview = document.getElementById('djSelectedPreview');
+      preview.innerHTML = djSelectedPlaylists.map(id => {
+        const playlist = djUserPlaylists.find(p => p.playlistId === id);
+        return playlist ? `<span class="dj-selected-tag">🎵 ${playlist.name}</span>` : '';
+      }).join('');
+      
+      // Enable/disable mix button
+      const mixBtn = document.getElementById('djMixBtn');
+      mixBtn.disabled = djSelectedPlaylists.length === 0;
+    }
+    
+    async function startDJMix() {
+      if (djSelectedPlaylists.length === 0) {
+        showNotification('Please select at least 1 playlist', 'warning');
+        return;
+      }
+      
+      const mixBtn = document.getElementById('djMixBtn');
+      mixBtn.innerHTML = '<span class="mix-icon">⏳</span><span>Mixing...</span>';
+      mixBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/dj/mix', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ playlistIds: djSelectedPlaylists })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success' && result.data?.tracks?.length > 0) {
+          // Include all tracks - we'll use Spotify embed for playback
+          djPlaylist = result.data.tracks;
+          
+          if (djPlaylist.length === 0) {
+            showNotification('No tracks found in selected playlists', 'error');
+            mixBtn.innerHTML = '<span class="mix-icon">🎛️</span><span>Start DJ Mix</span>';
+            mixBtn.disabled = false;
+            return;
+          }
+          
+          closeDJModal();
+          
+          // Activate DJ Mode
+          djMode = true;
+          const toggle = document.getElementById('djModeToggle');
+          const status = document.getElementById('djStatus');
+          const playerBar = document.getElementById('djPlayerBar');
+          
+          toggle.classList.add('active');
+          status.textContent = 'ON';
+          playerBar.classList.add('visible');
+          
+          // Load first track
+          djCurrentIndex = 0;
+          loadDJTrack(0);
+          
+          showNotification(`🎧 DJ Mix ready! ${djPlaylist.length} tracks queued with perfect flow`, 'success');
+        } else {
+          showNotification(result.message || 'Failed to create mix', 'error');
+        }
+      } catch (err) {
+        console.error('DJ Mix error:', err);
+        showNotification('Failed to create DJ mix', 'error');
+      }
+      
+      mixBtn.innerHTML = '<span class="mix-icon">🎛️</span><span>Start DJ Mix</span>';
+      mixBtn.disabled = djSelectedPlaylists.length === 0;
+    }
+    
+    function activateDJModeWithCurrentPlaylist() {
+      // Legacy function - activate DJ mode with current playlist
+      djMode = true;
       const toggle = document.getElementById('djModeToggle');
       const status = document.getElementById('djStatus');
       const playerBar = document.getElementById('djPlayerBar');
       
-      if (djMode) {
-        toggle.classList.add('active');
-        status.textContent = 'ON';
-        playerBar.classList.add('visible');
-        // If we have a playlist, load it into DJ mode
-        if (state.lastPlaylistData && state.lastPlaylistData.tracks) {
-          djPlaylist = state.lastPlaylistData.tracks.filter(t => t.preview_url);
-          if (djPlaylist.length > 0) {
-            loadDJTrack(0);
-          }
-        }
-      } else {
-        toggle.classList.remove('active');
-        status.textContent = '';
-        playerBar.classList.remove('visible');
-        if (djAudio) {
-          djAudio.pause();
+      toggle.classList.add('active');
+      status.textContent = 'ON';
+      playerBar.classList.add('visible');
+      
+      // If we have a playlist, load it into DJ mode
+      if (state.lastPlaylistData && state.lastPlaylistData.tracks) {
+        djPlaylist = state.lastPlaylistData.tracks.filter(t => t.preview_url);
+        if (djPlaylist.length > 0) {
+          loadDJTrack(0);
         }
       }
     }
@@ -1946,7 +2390,20 @@
       djCurrentIndex = index;
       currentDJTrack = djPlaylist[index];
       
-      document.getElementById('djTrackName').textContent = currentDJTrack.name;
+      // Build track name with phase indicator
+      let trackNameHtml = currentDJTrack.name;
+      if (currentDJTrack.djPhase) {
+        const phaseLabels = {
+          'warmup': '🌅 Warm Up',
+          'build': '📈 Build',
+          'peak': '🔥 Peak',
+          'cooldown': '🌙 Cool Down',
+          'bonus': '✨ Bonus'
+        };
+        trackNameHtml += ` <span class="dj-track-phase ${currentDJTrack.djPhase}">${phaseLabels[currentDJTrack.djPhase] || currentDJTrack.djPhase}</span>`;
+      }
+      
+      document.getElementById('djTrackName').innerHTML = trackNameHtml;
       document.getElementById('djTrackArtist').textContent = currentDJTrack.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
       
       const albumArt = document.getElementById('djAlbumArt').querySelector('img');
@@ -1955,22 +2412,140 @@
         albumArt.style.display = 'block';
       }
       
-      // Use preview URL for playback (30 second previews)
+      // Show BPM if available
+      if (currentDJTrack.audioFeatures?.tempo) {
+        const bpm = Math.round(currentDJTrack.audioFeatures.tempo);
+        document.getElementById('djTrackArtist').textContent += ` • ${bpm} BPM`;
+      }
+      
+      // Stop previous audio if any
       if (djAudio) {
         djAudio.pause();
+        djAudio = null;
       }
-      djAudio = new Audio(currentDJTrack.preview_url);
-      djAudio.volume = document.getElementById('djVolume').value / 100;
       
-      djAudio.addEventListener('timeupdate', updateDJProgress);
-      djAudio.addEventListener('ended', djNext);
-      djAudio.addEventListener('loadedmetadata', () => {
-        document.getElementById('djDuration').textContent = formatTime(djAudio.duration);
-      });
+      // Use preview URL if available, otherwise show Spotify embed option
+      if (currentDJTrack.preview_url) {
+        djAudio = new Audio(currentDJTrack.preview_url);
+        djAudio.volume = document.getElementById('djVolume').value / 100;
+        
+        djAudio.addEventListener('timeupdate', updateDJProgress);
+        djAudio.addEventListener('ended', djNext);
+        djAudio.addEventListener('loadedmetadata', () => {
+          document.getElementById('djDuration').textContent = formatTime(djAudio.duration);
+        });
+        
+        // Hide embed notification
+        hideDJEmbedNotice();
+      } else {
+        // No preview - show notification and offer to open in Spotify
+        showDJEmbedNotice(currentDJTrack);
+        document.getElementById('djDuration').textContent = '--:--';
+      }
+    }
+    
+    function showDJEmbedNotice(track) {
+      let notice = document.getElementById('djEmbedNotice');
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'djEmbedNotice';
+        notice.className = 'dj-embed-notice';
+        notice.innerHTML = `
+          <span class="notice-text">🎵 Preview not available for this track</span>
+          <button class="notice-btn" onclick="openTrackInSpotify()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+            Open in Spotify
+          </button>
+          <button class="notice-skip" onclick="djNext()">Skip →</button>
+        `;
+        document.getElementById('djPlayerBar').appendChild(notice);
+        
+        // Add styles
+        if (!document.getElementById('djEmbedNoticeStyles')) {
+          const style = document.createElement('style');
+          style.id = 'djEmbedNoticeStyles';
+          style.textContent = `
+            .dj-embed-notice {
+              position: absolute;
+              bottom: 100%;
+              left: 50%;
+              transform: translateX(-50%);
+              background: linear-gradient(135deg, rgba(29, 185, 84, 0.9), rgba(29, 185, 84, 0.7));
+              padding: 12px 20px;
+              border-radius: 12px 12px 0 0;
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              animation: noticeSlideUp 0.3s ease;
+              box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            }
+            @keyframes noticeSlideUp {
+              from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+              to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+            .notice-text {
+              color: white;
+              font-size: 14px;
+              font-weight: 500;
+            }
+            .notice-btn {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              background: white;
+              color: #1DB954;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: transform 0.2s;
+            }
+            .notice-btn:hover {
+              transform: scale(1.05);
+            }
+            .notice-skip {
+              background: rgba(255,255,255,0.2);
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 20px;
+              cursor: pointer;
+              font-weight: 500;
+            }
+            .notice-skip:hover {
+              background: rgba(255,255,255,0.3);
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }
+      notice.style.display = 'flex';
+    }
+    
+    function hideDJEmbedNotice() {
+      const notice = document.getElementById('djEmbedNotice');
+      if (notice) {
+        notice.style.display = 'none';
+      }
+    }
+    
+    function openTrackInSpotify() {
+      if (currentDJTrack?.uri) {
+        window.open(`https://open.spotify.com/track/${currentDJTrack.id}`, '_blank');
+      }
     }
     
     function djTogglePlay() {
-      if (!djAudio) return;
+      if (!djAudio) {
+        // No preview available, offer to open in Spotify
+        if (currentDJTrack?.id) {
+          openTrackInSpotify();
+        }
+        return;
+      }
       const playBtn = document.getElementById('djPlayBtn');
       
       if (djAudio.paused) {

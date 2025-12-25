@@ -500,6 +500,207 @@ app.get("/api/user-stats", (req: Request, res: Response) => {
 });
 
 // ============================================================================
+// DJ MODE ENDPOINTS
+// ============================================================================
+
+/**
+ * Get user's playlist history for DJ mode selection
+ */
+app.get("/api/dj/playlists", (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+  
+  try {
+    const userData = agentMemory.exportUserData(userId);
+    
+    if (!userData || !userData.recentPlaylists || userData.recentPlaylists.length === 0) {
+      res.json({
+        status: 'success',
+        data: { playlists: [] },
+        message: 'No playlists found. Create some playlists first!'
+      });
+      return;
+    }
+    
+    // Return playlist info from memory
+    const playlists = userData.recentPlaylists.map(p => ({
+      id: p.id,
+      playlistId: p.playlistId,
+      name: p.playlistName,
+      trackCount: p.trackCount,
+      createdAt: p.timestamp,
+      mood: p.intent?.parsedMood || p.characteristics?.dominantMood || 'Unknown',
+      energy: p.intent?.parsedEnergy || p.characteristics?.averageEnergy || 'medium',
+      genres: p.characteristics?.genres || [],
+      bpmRange: p.characteristics?.bpmRange || { min: 90, max: 140 }
+    })).reverse(); // Most recent first
+    
+    res.json({
+      status: 'success',
+      data: { playlists }
+    });
+  } catch (err: any) {
+    console.error('[API] DJ playlists error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get tracks from Spotify playlists and audio features for DJ mixing
+ */
+app.post("/api/dj/mix", async (req: Request, res: Response) => {
+  const { playlistIds } = req.body;
+  
+  if (!playlistIds || !Array.isArray(playlistIds) || playlistIds.length === 0) {
+    res.status(400).json({ status: 'error', message: 'At least one playlist ID is required' });
+    return;
+  }
+  
+  if (playlistIds.length > 2) {
+    res.status(400).json({ status: 'error', message: 'Maximum 2 playlists allowed for mixing' });
+    return;
+  }
+  
+  try {
+    console.log('[DJ Mode] Fetching tracks for playlists:', playlistIds);
+    
+    // Fetch tracks from all playlists
+    const allTracks: any[] = [];
+    
+    for (const playlistId of playlistIds) {
+      const result = await spotifyHandler.getPlaylistTracks(playlistId);
+      if (result.status === 'success' && result.data?.tracks) {
+        allTracks.push(...result.data.tracks.map((t: any) => ({
+          ...t,
+          sourcePlaylist: playlistId
+        })));
+      }
+    }
+    
+    if (allTracks.length === 0) {
+      res.json({
+        status: 'success',
+        data: { tracks: [], message: 'No tracks found in selected playlists' }
+      });
+      return;
+    }
+    
+    // Include all tracks, but mark those with preview URLs as playable
+    // Spotify often doesn't return preview_url for many tracks
+    const tracksWithPlayability = allTracks.filter(t => t.id).map(t => ({
+      ...t,
+      hasPreview: !!t.preview_url
+    }));
+    
+    // Get audio features for BPM/energy matching
+    const trackIds = tracksWithPlayability.map(t => t.id).filter(Boolean);
+    const featuresResult = await spotifyHandler.getAudioFeatures(trackIds);
+    
+    let audioFeatures: any[] = [];
+    if (featuresResult.status === 'success' && featuresResult.data?.audioFeatures) {
+      audioFeatures = featuresResult.data.audioFeatures;
+    }
+    
+    // Merge audio features with tracks
+    const tracksWithFeatures = tracksWithPlayability.map(track => {
+      const features = audioFeatures.find(f => f?.id === track.id);
+      return {
+        ...track,
+        audioFeatures: features ? {
+          tempo: features.tempo,
+          energy: features.energy,
+          danceability: features.danceability,
+          valence: features.valence,
+          key: features.key,
+          mode: features.mode,
+          loudness: features.loudness
+        } : null
+      };
+    });
+    
+    // Sort tracks for optimal DJ mixing (by tempo and energy)
+    const sortedTracks = sortTracksForDJMix(tracksWithFeatures);
+    
+    console.log('[DJ Mode] Prepared mix with', sortedTracks.length, 'tracks');
+    
+    res.json({
+      status: 'success',
+      data: {
+        tracks: sortedTracks,
+        totalTracks: sortedTracks.length,
+        mixStrategy: 'tempo-energy-flow'
+      }
+    });
+    
+  } catch (err: any) {
+    console.error('[API] DJ mix error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Sort tracks for optimal DJ mixing based on tempo, energy, and flow
+ */
+function sortTracksForDJMix(tracks: any[]): any[] {
+  // Separate tracks with and without features
+  const withFeatures = tracks.filter(t => t.audioFeatures);
+  const withoutFeatures = tracks.filter(t => !t.audioFeatures);
+  
+  if (withFeatures.length === 0) {
+    // No audio features, just shuffle
+    return shuffleArray([...tracks]);
+  }
+  
+  // Group tracks by tempo ranges
+  const slowTracks = withFeatures.filter(t => t.audioFeatures.tempo < 100);
+  const mediumTracks = withFeatures.filter(t => t.audioFeatures.tempo >= 100 && t.audioFeatures.tempo < 130);
+  const fastTracks = withFeatures.filter(t => t.audioFeatures.tempo >= 130);
+  
+  // Sort each group by energy (ascending for a gradual build)
+  const sortByEnergy = (a: any, b: any) => a.audioFeatures.energy - b.audioFeatures.energy;
+  slowTracks.sort(sortByEnergy);
+  mediumTracks.sort(sortByEnergy);
+  fastTracks.sort(sortByEnergy);
+  
+  // Create a DJ-style flow: start slow, build up, peak, cool down
+  const result: any[] = [];
+  
+  // Phase 1: Warm up - some slow/medium tracks
+  const warmup = [...slowTracks.slice(0, Math.ceil(slowTracks.length / 2))];
+  warmup.forEach((t, i) => { t.djPhase = 'warmup'; t.djOrder = i; });
+  result.push(...warmup);
+  
+  // Phase 2: Build - medium tracks with increasing energy
+  const build = [...mediumTracks];
+  build.forEach((t, i) => { t.djPhase = 'build'; t.djOrder = i; });
+  result.push(...build);
+  
+  // Phase 3: Peak - fast high-energy tracks
+  const peak = [...fastTracks.reverse()]; // Highest energy first
+  peak.forEach((t, i) => { t.djPhase = 'peak'; t.djOrder = i; });
+  result.push(...peak);
+  
+  // Phase 4: Cool down - remaining slow tracks
+  const cooldown = [...slowTracks.slice(Math.ceil(slowTracks.length / 2))];
+  cooldown.forEach((t, i) => { t.djPhase = 'cooldown'; t.djOrder = i; });
+  result.push(...cooldown);
+  
+  // Add tracks without features at the end
+  withoutFeatures.forEach((t, i) => { t.djPhase = 'bonus'; t.djOrder = i; });
+  result.push(...withoutFeatures);
+  
+  return result;
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// ============================================================================
 // ORIGINAL MCP ENDPOINT (preserved for backward compatibility)
 // ============================================================================
 
