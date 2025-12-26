@@ -6,10 +6,10 @@ import { parsePlaylistIntent } from "./nlpHelper.js";
 import { RateLimiter } from "./rateLimiter.js";
 import { MCPRequest, MCPResponse, FeedbackAction } from "./types.js";
 import { agentMemory } from "./agentMemory.js";
-import { 
-  getProactiveSuggestion, 
-  generateAgenticPlaylist, 
-  processTrackFeedback, 
+import {
+  getProactiveSuggestion,
+  generateAgenticPlaylist,
+  processTrackFeedback,
   processPlaylistRating,
   getTasteFingerprint,
   evolvePlaylist,
@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 3001;
 const ENABLE_NLP = process.env.ENABLE_NLP !== 'false';
 
 // Rate limiter: 100 requests per minute
-const globalRateLimiter = new RateLimiter(100, 100/60);
+const globalRateLimiter = new RateLimiter(100, 100 / 60);
 
 // Default user ID for demo (in production, use real auth)
 const DEFAULT_USER_ID = 'demo-user';
@@ -52,23 +52,23 @@ app.use(express.static("public"));
 app.post("/api/speech-to-text", async (req: Request, res: Response) => {
   try {
     const { audioData, mimeType = 'audio/webm' } = req.body;
-    
+
     if (!audioData) {
       res.status(400).json({ success: false, error: 'No audio data provided' });
       return;
     }
-    
+
     console.log('[Speech-to-Text] Processing audio, mimeType:', mimeType);
-    
+
     // Use OpenRouter API with Gemini model (same as aiService)
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
-    
+
     if (!OPENROUTER_API_KEY) {
       console.error('[Speech-to-Text] No OpenRouter API key found');
       res.status(500).json({ success: false, error: 'API key not configured' });
       return;
     }
-    
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -110,19 +110,19 @@ app.post("/api/speech-to-text", async (req: Request, res: Response) => {
 
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content?.trim() || '';
-    
+
     console.log('[Speech-to-Text] Transcribed:', text);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       text: text,
       message: 'Audio transcribed successfully'
     });
-    
+
   } catch (error: any) {
     console.error('[Speech-to-Text] Error:', error.message);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: error.message || 'Transcription failed'
     });
   }
@@ -162,11 +162,11 @@ app.get("/api/leaderboard", (req: Request, res: Response) => {
 });
 
 app.get("/stats", (_req, res) => {
-    res.json({
-        status: "running",
-        uptime: process.uptime(),
-        rateLimitTokens: globalRateLimiter.getTokens()
-    });
+  res.json({
+    status: "running",
+    uptime: process.uptime(),
+    rateLimitTokens: globalRateLimiter.getTokens()
+  });
 });
 
 // ============================================================================
@@ -179,10 +179,10 @@ app.get("/stats", (_req, res) => {
  */
 app.get("/api/proactive-suggestion", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const suggestion = getProactiveSuggestion(userId);
-    
+
     if (suggestion) {
       res.json({
         status: 'success',
@@ -206,27 +206,27 @@ app.get("/api/proactive-suggestion", (req: Request, res: Response) => {
  */
 app.post("/api/generate-playlist", async (req: Request, res: Response) => {
   const { prompt, userId = DEFAULT_USER_ID, options, dbUserId } = req.body;
-  
+
   if (!prompt || typeof prompt !== 'string') {
     res.status(400).json({ status: 'error', message: 'Prompt is required' });
     return;
   }
-  
+
   if (!globalRateLimiter.consume()) {
     res.status(429).json({ status: 'error', message: 'Rate limit exceeded' });
     return;
   }
-  
+
   try {
     console.log('[API] Generating agentic playlist:', { prompt, userId, dbUserId });
-    
+
     const result = await generateAgenticPlaylist(userId, prompt, options);
-    
+
     if ('error' in result) {
       res.status(500).json({ status: 'error', message: result.error });
       return;
     }
-    
+
     // Track playlist generation count for logged-in users
     if (dbUserId && typeof dbUserId === 'number') {
       try {
@@ -236,12 +236,12 @@ app.post("/api/generate-playlist", async (req: Request, res: Response) => {
         console.error('[API] Failed to increment playlist count:', e);
       }
     }
-    
+
     res.json({
       status: 'success',
       data: result,
     });
-    
+
   } catch (err: any) {
     console.error('[API] Generate playlist error:', err);
     res.status(500).json({ status: 'error', message: err.message });
@@ -254,12 +254,12 @@ app.post("/api/generate-playlist", async (req: Request, res: Response) => {
  */
 app.post("/api/parse-intent", (req: Request, res: Response) => {
   const { prompt, userId = DEFAULT_USER_ID } = req.body;
-  
+
   if (!prompt) {
     res.status(400).json({ status: 'error', message: 'Prompt is required' });
     return;
   }
-  
+
   try {
     const userContext = agentMemory.getPersonalizedContext(userId);
     const intent = parseEnhancedIntent(prompt, {
@@ -267,14 +267,14 @@ app.post("/api/parse-intent", (req: Request, res: Response) => {
       previousMood: userContext.recentMoodTrend,
       preferredGenres: userContext.suggestedGenres,
     });
-    
+
     const explanation = generateExplanation(intent, {
       timeOfDay: userContext.timeOfDay,
       preferenceNote: userContext.explanation,
     });
-    
+
     const modifications = suggestModifications(intent);
-    
+
     res.json({
       status: 'success',
       data: {
@@ -287,7 +287,7 @@ app.post("/api/parse-intent", (req: Request, res: Response) => {
         },
       },
     });
-    
+
   } catch (err: any) {
     res.status(500).json({ status: 'error', message: err.message });
   }
@@ -298,17 +298,17 @@ app.post("/api/parse-intent", (req: Request, res: Response) => {
  */
 app.post("/api/feedback/track", (req: Request, res: Response) => {
   const { memoryId, trackUri, action, userId = DEFAULT_USER_ID } = req.body;
-  
+
   if (!memoryId || !trackUri || !action) {
     res.status(400).json({ status: 'error', message: 'memoryId, trackUri, and action are required' });
     return;
   }
-  
+
   if (!['like', 'skip'].includes(action)) {
     res.status(400).json({ status: 'error', message: 'Action must be "like" or "skip"' });
     return;
   }
-  
+
   try {
     const result = processTrackFeedback(userId, memoryId, trackUri, action);
     res.json({ status: result.success ? 'success' : 'error', message: result.message });
@@ -322,21 +322,21 @@ app.post("/api/feedback/track", (req: Request, res: Response) => {
  */
 app.post("/api/feedback/playlist", (req: Request, res: Response) => {
   const { memoryId, rating, userId = DEFAULT_USER_ID } = req.body;
-  
+
   if (!memoryId || !rating) {
     res.status(400).json({ status: 'error', message: 'memoryId and rating are required' });
     return;
   }
-  
+
   if (!['loved', 'liked', 'neutral', 'disliked'].includes(rating)) {
     res.status(400).json({ status: 'error', message: 'Invalid rating' });
     return;
   }
-  
+
   try {
     const result = processPlaylistRating(userId, memoryId, rating);
-    res.json({ 
-      status: result.success ? 'success' : 'error', 
+    res.json({
+      status: result.success ? 'success' : 'error',
       message: result.message,
       suggestion: result.suggestion,
     });
@@ -350,7 +350,7 @@ app.post("/api/feedback/playlist", (req: Request, res: Response) => {
  */
 app.get("/api/taste-profile", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const profile = getTasteFingerprint(userId);
     res.json({ status: 'success', data: profile });
@@ -364,12 +364,12 @@ app.get("/api/taste-profile", (req: Request, res: Response) => {
  */
 app.post("/api/evolve-playlist", async (req: Request, res: Response) => {
   const { playlistId, memoryId, evolutionType = 'refresh', userId = DEFAULT_USER_ID } = req.body;
-  
+
   if (!playlistId || !memoryId) {
     res.status(400).json({ status: 'error', message: 'playlistId and memoryId are required' });
     return;
   }
-  
+
   try {
     const result = await evolvePlaylist(userId, {
       playlistId,
@@ -378,9 +378,9 @@ app.post("/api/evolve-playlist", async (req: Request, res: Response) => {
       keepLikedTracks: true,
       removeSkippedTracks: true,
     });
-    
-    res.json({ 
-      status: result.success ? 'success' : 'error', 
+
+    res.json({
+      status: result.success ? 'success' : 'error',
       message: result.message,
       newTracks: result.newTracks,
     });
@@ -395,12 +395,12 @@ app.post("/api/evolve-playlist", async (req: Request, res: Response) => {
  */
 app.post("/api/refine-playlist", async (req: Request, res: Response) => {
   const { originalPrompt, refinement, currentTracks, playlistId, userId = DEFAULT_USER_ID } = req.body;
-  
+
   if (!refinement || !playlistId) {
     res.status(400).json({ status: 'error', message: 'refinement and playlistId are required' });
     return;
   }
-  
+
   try {
     const result = await refinePlaylistWithChat(userId, {
       originalPrompt,
@@ -408,7 +408,7 @@ app.post("/api/refine-playlist", async (req: Request, res: Response) => {
       currentTrackUris: currentTracks,
       playlistId,
     });
-    
+
     res.json({
       status: 'success',
       message: result.message,
@@ -426,7 +426,7 @@ app.post("/api/refine-playlist", async (req: Request, res: Response) => {
  */
 app.get("/api/weekly-refresh", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const suggestions = getWeeklyRefreshSuggestions(userId);
     res.json({ status: 'success', data: suggestions });
@@ -440,7 +440,7 @@ app.get("/api/weekly-refresh", (req: Request, res: Response) => {
  */
 app.get("/api/ai-suggestion", async (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const suggestion = await getAISuggestion(userId);
     if (suggestion) {
@@ -458,7 +458,7 @@ app.get("/api/ai-suggestion", async (req: Request, res: Response) => {
  */
 app.get("/api/ai-memory-summary", async (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const summary = await getAIMemorySummary(userId);
     res.json({ status: 'success', data: { summary } });
@@ -472,7 +472,7 @@ app.get("/api/ai-memory-summary", async (req: Request, res: Response) => {
  */
 app.post("/api/ai-cover-prompt", async (req: Request, res: Response) => {
   const { playlistName, mood, genres, userPrompt } = req.body;
-  
+
   try {
     const prompt = await getAICoverPrompt(
       playlistName || 'My Playlist',
@@ -491,7 +491,7 @@ app.post("/api/ai-cover-prompt", async (req: Request, res: Response) => {
  */
 app.delete("/api/memory", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     agentMemory.clearUserMemory(userId);
     res.json({ status: 'success', message: 'Memory cleared successfully' });
@@ -505,7 +505,7 @@ app.delete("/api/memory", (req: Request, res: Response) => {
  */
 app.get("/api/export-data", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const data = agentMemory.exportUserData(userId);
     res.json({ status: 'success', data });
@@ -520,39 +520,39 @@ app.get("/api/export-data", (req: Request, res: Response) => {
  */
 app.get("/api/user-stats", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const stats = agentMemory.getUserStats(userId);
     const userData = agentMemory.exportUserData(userId);
-    
+
     // Get top genre from genreAffinities
     let topGenre = 'None yet';
     let topMood = 'None yet';
-    
+
     if (userData && userData.tasteProfile) {
       // Find top genre
       const genreAffinities = userData.tasteProfile.genreAffinities || {};
       const genres = Object.entries(genreAffinities)
         .filter(([_, score]) => (score as number) > 0)
         .sort((a, b) => (b[1] as number) - (a[1] as number));
-      
+
       if (genres.length > 0) {
         // Capitalize first letter
         topGenre = genres[0][0].charAt(0).toUpperCase() + genres[0][0].slice(1);
       }
-      
+
       // Find top mood from moodAffinities
       const moodAffinities = userData.tasteProfile.moodAffinities || {};
       const moods = Object.entries(moodAffinities)
         .filter(([_, score]) => (score as number) > 0)
         .sort((a, b) => (b[1] as number) - (a[1] as number));
-      
+
       if (moods.length > 0) {
         // Capitalize first letter
         topMood = moods[0][0].charAt(0).toUpperCase() + moods[0][0].slice(1);
       }
     }
-    
+
     // Calculate total tracks from recent playlists
     let totalTracks = 0;
     if (userData && userData.recentPlaylists) {
@@ -560,7 +560,7 @@ app.get("/api/user-stats", (req: Request, res: Response) => {
         totalTracks += playlist.trackCount || 0;
       });
     }
-    
+
     res.json({
       status: 'success',
       data: {
@@ -590,10 +590,10 @@ app.get("/api/user-stats", (req: Request, res: Response) => {
  */
 app.get("/api/dj/playlists", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
-  
+
   try {
     const userData = agentMemory.exportUserData(userId);
-    
+
     if (!userData || !userData.recentPlaylists || userData.recentPlaylists.length === 0) {
       res.json({
         status: 'success',
@@ -602,7 +602,7 @@ app.get("/api/dj/playlists", (req: Request, res: Response) => {
       });
       return;
     }
-    
+
     // Return playlist info from memory
     const playlists = userData.recentPlaylists.map(p => ({
       id: p.id,
@@ -615,7 +615,7 @@ app.get("/api/dj/playlists", (req: Request, res: Response) => {
       genres: p.characteristics?.genres || [],
       bpmRange: p.characteristics?.bpmRange || { min: 90, max: 140 }
     })).reverse(); // Most recent first
-    
+
     res.json({
       status: 'success',
       data: { playlists }
@@ -631,23 +631,23 @@ app.get("/api/dj/playlists", (req: Request, res: Response) => {
  */
 app.post("/api/dj/mix", async (req: Request, res: Response) => {
   const { playlistIds } = req.body;
-  
+
   if (!playlistIds || !Array.isArray(playlistIds) || playlistIds.length === 0) {
     res.status(400).json({ status: 'error', message: 'At least one playlist ID is required' });
     return;
   }
-  
+
   if (playlistIds.length > 2) {
     res.status(400).json({ status: 'error', message: 'Maximum 2 playlists allowed for mixing' });
     return;
   }
-  
+
   try {
     console.log('[DJ Mode] Fetching tracks for playlists:', playlistIds);
-    
+
     // Fetch tracks from all playlists
     const allTracks: any[] = [];
-    
+
     for (const playlistId of playlistIds) {
       const result = await spotifyHandler.getPlaylistTracks(playlistId);
       if (result.status === 'success' && result.data?.tracks) {
@@ -657,7 +657,7 @@ app.post("/api/dj/mix", async (req: Request, res: Response) => {
         })));
       }
     }
-    
+
     if (allTracks.length === 0) {
       res.json({
         status: 'success',
@@ -665,23 +665,23 @@ app.post("/api/dj/mix", async (req: Request, res: Response) => {
       });
       return;
     }
-    
+
     // Include all tracks, but mark those with preview URLs as playable
     // Spotify often doesn't return preview_url for many tracks
     const tracksWithPlayability = allTracks.filter(t => t.id).map(t => ({
       ...t,
       hasPreview: !!t.preview_url
     }));
-    
+
     // Get audio features for BPM/energy matching
     const trackIds = tracksWithPlayability.map(t => t.id).filter(Boolean);
     const featuresResult = await spotifyHandler.getAudioFeatures(trackIds);
-    
+
     let audioFeatures: any[] = [];
     if (featuresResult.status === 'success' && featuresResult.data?.audioFeatures) {
       audioFeatures = featuresResult.data.audioFeatures;
     }
-    
+
     // Merge audio features with tracks
     const tracksWithFeatures = tracksWithPlayability.map(track => {
       const features = audioFeatures.find(f => f?.id === track.id);
@@ -698,12 +698,12 @@ app.post("/api/dj/mix", async (req: Request, res: Response) => {
         } : null
       };
     });
-    
+
     // Sort tracks for optimal DJ mixing (by tempo and energy)
     const sortedTracks = sortTracksForDJMix(tracksWithFeatures);
-    
+
     console.log('[DJ Mode] Prepared mix with', sortedTracks.length, 'tracks');
-    
+
     res.json({
       status: 'success',
       data: {
@@ -712,7 +712,7 @@ app.post("/api/dj/mix", async (req: Request, res: Response) => {
         mixStrategy: 'tempo-energy-flow'
       }
     });
-    
+
   } catch (err: any) {
     console.error('[API] DJ mix error:', err);
     res.status(500).json({ status: 'error', message: err.message });
@@ -726,50 +726,50 @@ function sortTracksForDJMix(tracks: any[]): any[] {
   // Separate tracks with and without features
   const withFeatures = tracks.filter(t => t.audioFeatures);
   const withoutFeatures = tracks.filter(t => !t.audioFeatures);
-  
+
   if (withFeatures.length === 0) {
     // No audio features, just shuffle
     return shuffleArray([...tracks]);
   }
-  
+
   // Group tracks by tempo ranges
   const slowTracks = withFeatures.filter(t => t.audioFeatures.tempo < 100);
   const mediumTracks = withFeatures.filter(t => t.audioFeatures.tempo >= 100 && t.audioFeatures.tempo < 130);
   const fastTracks = withFeatures.filter(t => t.audioFeatures.tempo >= 130);
-  
+
   // Sort each group by energy (ascending for a gradual build)
   const sortByEnergy = (a: any, b: any) => a.audioFeatures.energy - b.audioFeatures.energy;
   slowTracks.sort(sortByEnergy);
   mediumTracks.sort(sortByEnergy);
   fastTracks.sort(sortByEnergy);
-  
+
   // Create a DJ-style flow: start slow, build up, peak, cool down
   const result: any[] = [];
-  
+
   // Phase 1: Warm up - some slow/medium tracks
   const warmup = [...slowTracks.slice(0, Math.ceil(slowTracks.length / 2))];
   warmup.forEach((t, i) => { t.djPhase = 'warmup'; t.djOrder = i; });
   result.push(...warmup);
-  
+
   // Phase 2: Build - medium tracks with increasing energy
   const build = [...mediumTracks];
   build.forEach((t, i) => { t.djPhase = 'build'; t.djOrder = i; });
   result.push(...build);
-  
+
   // Phase 3: Peak - fast high-energy tracks
   const peak = [...fastTracks.reverse()]; // Highest energy first
   peak.forEach((t, i) => { t.djPhase = 'peak'; t.djOrder = i; });
   result.push(...peak);
-  
+
   // Phase 4: Cool down - remaining slow tracks
   const cooldown = [...slowTracks.slice(Math.ceil(slowTracks.length / 2))];
   cooldown.forEach((t, i) => { t.djPhase = 'cooldown'; t.djOrder = i; });
   result.push(...cooldown);
-  
+
   // Add tracks without features at the end
   withoutFeatures.forEach((t, i) => { t.djPhase = 'bonus'; t.djOrder = i; });
   result.push(...withoutFeatures);
-  
+
   return result;
 }
 
@@ -789,48 +789,48 @@ function shuffleArray<T>(array: T[]): T[] {
 // MCP Endpoint
 app.post("/mcp", async (req: Request, res: Response) => {
   const body = req.body as MCPRequest;
-  
+
   if (!globalRateLimiter.consume()) {
-      res.status(429).json({ status: 'error', message: 'Rate limit exceeded' });
-      return;
+    res.status(429).json({ status: 'error', message: 'Rate limit exceeded' });
+    return;
   }
 
   console.log('MCP Request:', body);
 
   try {
-      let result;
-      switch (body.tool) {
-          case 'search-track':
-              result = await spotifyHandler.searchTracks(body.input.query, body.input.limit);
-              break;
-          case 'recommend':
-              result = await spotifyHandler.getRecommendations(
-                  body.input.seedArtists,
-                  body.input.seedGenres,
-                  body.input.seedTracks,
-                  body.input.limit
-              );
-              break;
-          case 'create-playlist':
-              let playlistName = body.input.name;
-              let description = body.input.description;
-              
-              result = await spotifyHandler.createPlaylist(
-                  body.input.userId,
-                  playlistName,
-                  description || '',
-                  body.input.trackUris || [],
-                  body.input.public
-              );
-              break;
-          default:
-              res.status(400).json({ status: 'error', message: 'Unknown tool' });
-              return;
-      }
-      res.json(result);
+    let result;
+    switch (body.tool) {
+      case 'search-track':
+        result = await spotifyHandler.searchTracks(body.input.query, body.input.limit);
+        break;
+      case 'recommend':
+        result = await spotifyHandler.getRecommendations(
+          body.input.seedArtists,
+          body.input.seedGenres,
+          body.input.seedTracks,
+          body.input.limit
+        );
+        break;
+      case 'create-playlist':
+        let playlistName = body.input.name;
+        let description = body.input.description;
+
+        result = await spotifyHandler.createPlaylist(
+          body.input.userId,
+          playlistName,
+          description || '',
+          body.input.trackUris || [],
+          body.input.public
+        );
+        break;
+      default:
+        res.status(400).json({ status: 'error', message: 'Unknown tool' });
+        return;
+    }
+    res.json(result);
   } catch (error: any) {
-      console.error('Error processing request:', error);
-      res.status(500).json({ status: 'error', message: error.message });
+    console.error('Error processing request:', error);
+    res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
@@ -840,12 +840,12 @@ app.post("/mcp", async (req: Request, res: Response) => {
  */
 app.post("/api/set-playlist-cover", async (req: Request, res: Response) => {
   const { playlistId, imageUrl } = req.body;
-  
+
   if (!playlistId || !imageUrl) {
     res.status(400).json({ status: 'error', message: 'playlistId and imageUrl are required' });
     return;
   }
-  
+
   try {
     const result = await spotifyHandler.setPlaylistCover(playlistId, imageUrl);
     res.json(result);
@@ -855,21 +855,134 @@ app.post("/api/set-playlist-cover", async (req: Request, res: Response) => {
   }
 });
 
-async function start() {
-    // Load credentials
-    const clientId = process.env.SPOTIFY_CLIENT_ID || 'f6b396ecab7646afab201c9eecaa7dd3';
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || 'fd407d0f8a0c49eebb0591ee77139544';
-    const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN || 'AQDs2gFJ-PcVZtSriscGAJuSQq34UMO8IHagDrToHQW1JnKKkayj8vyTj2iExt2M2ZjkKx9mXHYR9YZUK-f-W6kGWSEVEBebm17TwC7VXSHNf5CjYTbICCjrfioHvwBSSlc';
+// ============================================================================
+// JIOSAAVN DOWNLOAD ENDPOINTS - For downloading playlists as MP3s
+// ============================================================================
 
-    if (clientId && clientSecret && refreshToken) {
-        spotifyHandler.initializeSpotify(clientId, clientSecret, refreshToken);
+import * as jiosaavnService from "./jiosaavnService.js";
+
+/**
+ * Search songs on JioSaavn
+ */
+app.get("/api/jiosaavn/search", async (req: Request, res: Response) => {
+  const query = req.query.query as string;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  if (!query) {
+    res.status(400).json({ status: 'error', message: 'Query is required' });
+    return;
+  }
+
+  try {
+    const result = await jiosaavnService.searchSongs(query, limit);
+    if (result && result.status === 'SUCCESS') {
+      res.json({ status: 'success', data: result.data });
     } else {
-        console.error("Missing Spotify credentials!");
+      res.status(500).json({ status: 'error', message: 'Failed to search JioSaavn' });
+    }
+  } catch (err: any) {
+    console.error('[API] JioSaavn search error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get song details by ID
+ */
+app.get("/api/jiosaavn/song/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const result = await jiosaavnService.getSongById(id);
+    if (result && result.data.length > 0) {
+      const song = result.data[0];
+      res.json({
+        status: 'success',
+        data: {
+          ...song,
+          downloadUrl: jiosaavnService.getDownloadUrl(song),
+          imageUrl: jiosaavnService.getImageUrl(song)
+        }
+      });
+    } else {
+      res.status(404).json({ status: 'error', message: 'Song not found' });
+    }
+  } catch (err: any) {
+    console.error('[API] JioSaavn song error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Match Spotify tracks to JioSaavn and get download info
+ */
+app.post("/api/jiosaavn/match", async (req: Request, res: Response) => {
+  const { tracks } = req.body;
+
+  if (!tracks || !Array.isArray(tracks)) {
+    res.status(400).json({ status: 'error', message: 'Tracks array is required' });
+    return;
+  }
+
+  try {
+    const matchedTracks = [];
+
+    for (const track of tracks) {
+      const { name, artist } = track;
+      if (!name) continue;
+
+      const match = await jiosaavnService.matchSpotifyTrack(name, artist || '');
+
+      if (match) {
+        matchedTracks.push({
+          spotifyTrack: track,
+          jiosaavnMatch: {
+            id: match.id,
+            name: match.name,
+            artist: match.artists?.primary?.[0]?.name || 'Unknown',
+            album: match.album?.name || 'Unknown',
+            duration: match.duration,
+            downloadUrl: jiosaavnService.getDownloadUrl(match),
+            imageUrl: jiosaavnService.getImageUrl(match)
+          }
+        });
+      } else {
+        matchedTracks.push({
+          spotifyTrack: track,
+          jiosaavnMatch: null
+        });
+      }
     }
 
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+    res.json({
+      status: 'success',
+      data: {
+        total: tracks.length,
+        matched: matchedTracks.filter(t => t.jiosaavnMatch).length,
+        tracks: matchedTracks
+      }
     });
+  } catch (err: any) {
+    console.error('[API] JioSaavn match error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+async function start() {
+  // Load credentials
+  const clientId = process.env.SPOTIFY_CLIENT_ID || 'f6b396ecab7646afab201c9eecaa7dd3';
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || 'fd407d0f8a0c49eebb0591ee77139544';
+  const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN || 'AQDs2gFJ-PcVZtSriscGAJuSQq34UMO8IHagDrToHQW1JnKKkayj8vyTj2iExt2M2ZjkKx9mXHYR9YZUK-f-W6kGWSEVEBebm17TwC7VXSHNf5CjYTbICCjrfioHvwBSSlc';
+
+  if (clientId && clientSecret && refreshToken) {
+    spotifyHandler.initializeSpotify(clientId, clientSecret, refreshToken);
+  } else {
+    console.error("Missing Spotify credentials!");
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
 start();

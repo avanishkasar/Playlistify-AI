@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
   <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="pages.css">
@@ -18,14 +21,14 @@
       padding: 2rem;
       padding-top: 100px;
     }
-    
+
     .collab-hero {
       text-align: center;
       padding: 3rem 1rem;
       max-width: 800px;
       margin: 0 auto;
     }
-    
+
     .collab-hero h1 {
       font-size: clamp(2rem, 5vw, 3.5rem);
       font-weight: 800;
@@ -35,14 +38,14 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    
+
     .collab-hero p {
       font-size: 1.1rem;
       color: var(--text-muted);
       max-width: 600px;
       margin: 0 auto 2rem;
     }
-    
+
     .collab-actions {
       display: flex;
       gap: 1rem;
@@ -50,7 +53,7 @@
       flex-wrap: wrap;
       margin-bottom: 3rem;
     }
-    
+
     .collab-btn {
       display: inline-flex;
       align-items: center;
@@ -63,53 +66,53 @@
       transition: all 0.3s ease;
       border: none;
     }
-    
+
     .collab-btn.primary {
       background: linear-gradient(135deg, var(--spotify-green), #1ed760);
       color: #000;
     }
-    
+
     .collab-btn.primary:hover {
       transform: scale(1.05);
       box-shadow: 0 0 30px rgba(29, 185, 84, 0.4);
     }
-    
+
     .collab-btn.secondary {
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-primary);
       border: 1px solid var(--border-subtle);
     }
-    
+
     .collab-btn.secondary:hover {
       background: rgba(255, 255, 255, 0.15);
       border-color: var(--spotify-green);
     }
-    
+
     /* Active Collab Sessions */
     .collab-section {
       max-width: 1200px;
       margin: 0 auto 3rem;
     }
-    
+
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 1.5rem;
     }
-    
+
     .section-header h2 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-primary);
     }
-    
+
     .collab-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 1.5rem;
     }
-    
+
     .collab-card {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
@@ -117,26 +120,26 @@
       padding: 1.5rem;
       transition: all 0.3s ease;
     }
-    
+
     .collab-card:hover {
       background: rgba(255, 255, 255, 0.06);
       border-color: var(--spotify-green);
       transform: translateY(-4px);
     }
-    
+
     .collab-card-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 1rem;
     }
-    
+
     .collab-card-title {
       font-size: 1.2rem;
       font-weight: 600;
       color: var(--text-primary);
     }
-    
+
     .collab-status {
       display: inline-flex;
       align-items: center;
@@ -146,12 +149,12 @@
       font-size: 0.75rem;
       font-weight: 600;
     }
-    
+
     .collab-status.live {
       background: rgba(239, 68, 68, 0.2);
       color: #f87171;
     }
-    
+
     .collab-status.live::before {
       content: '';
       width: 6px;
@@ -160,12 +163,19 @@
       border-radius: 50%;
       animation: pulse 1.5s ease-in-out infinite;
     }
-    
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
     }
-    
+
     .collab-meta {
       display: flex;
       align-items: center;
@@ -174,20 +184,20 @@
       font-size: 0.85rem;
       margin-bottom: 1rem;
     }
-    
+
     .collab-meta span {
       display: flex;
       align-items: center;
       gap: 0.3rem;
     }
-    
+
     .collab-contributors {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       margin-bottom: 1rem;
     }
-    
+
     .contributor-avatar {
       width: 32px;
       height: 32px;
@@ -202,22 +212,22 @@
       border: 2px solid var(--surface-elevated);
       margin-left: -8px;
     }
-    
+
     .contributor-avatar:first-child {
       margin-left: 0;
     }
-    
+
     .contributor-count {
       font-size: 0.8rem;
       color: var(--text-muted);
       margin-left: 0.5rem;
     }
-    
+
     .collab-card-actions {
       display: flex;
       gap: 0.75rem;
     }
-    
+
     .card-action-btn {
       flex: 1;
       padding: 0.6rem 1rem;
@@ -228,25 +238,25 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .card-action-btn.join {
       background: var(--spotify-green);
       color: #000;
     }
-    
+
     .card-action-btn.join:hover {
       background: #1ed760;
     }
-    
+
     .card-action-btn.view {
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-primary);
     }
-    
+
     .card-action-btn.view:hover {
       background: rgba(255, 255, 255, 0.15);
     }
-    
+
     /* Create Collab Modal */
     .modal-overlay {
       position: fixed;
@@ -262,11 +272,11 @@
       z-index: 1000;
       padding: 1rem;
     }
-    
+
     .modal-overlay.active {
       display: flex;
     }
-    
+
     .modal {
       background: var(--surface-elevated);
       border: 1px solid var(--border-subtle);
@@ -276,24 +286,31 @@
       width: 100%;
       animation: modalSlide 0.3s ease;
     }
-    
+
     @keyframes modalSlide {
-      from { opacity: 0; transform: scale(0.9) translateY(20px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
-    
+
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.5rem;
     }
-    
+
     .modal-header h3 {
       font-size: 1.5rem;
       font-weight: 700;
     }
-    
+
     .modal-close {
       width: 36px;
       height: 36px;
@@ -307,23 +324,23 @@
       justify-content: center;
       font-size: 1.2rem;
     }
-    
+
     .modal-close:hover {
       background: rgba(239, 68, 68, 0.2);
       color: #f87171;
     }
-    
+
     .form-group {
       margin-bottom: 1.25rem;
     }
-    
+
     .form-group label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
       color: var(--text-secondary);
     }
-    
+
     .form-group input,
     .form-group textarea {
       width: 100%;
@@ -335,24 +352,24 @@
       font-size: 1rem;
       font-family: inherit;
     }
-    
+
     .form-group input:focus,
     .form-group textarea:focus {
       outline: none;
       border-color: var(--spotify-green);
     }
-    
+
     .form-group textarea {
       resize: vertical;
       min-height: 80px;
     }
-    
+
     .modal-actions {
       display: flex;
       gap: 1rem;
       margin-top: 1.5rem;
     }
-    
+
     .modal-btn {
       flex: 1;
       padding: 1rem;
@@ -363,21 +380,21 @@
       border: none;
       transition: all 0.2s ease;
     }
-    
+
     .modal-btn.cancel {
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-primary);
     }
-    
+
     .modal-btn.create {
       background: linear-gradient(135deg, var(--spotify-green), #1ed760);
       color: #000;
     }
-    
+
     .modal-btn.create:hover {
       transform: scale(1.02);
     }
-    
+
     /* Join by Code */
     .join-section {
       background: rgba(255, 255, 255, 0.03);
@@ -388,23 +405,23 @@
       max-width: 500px;
       margin: 0 auto;
     }
-    
+
     .join-section h3 {
       font-size: 1.25rem;
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
-    
+
     .join-section p {
       color: var(--text-muted);
       margin-bottom: 1rem;
     }
-    
+
     .join-input-group {
       display: flex;
       gap: 0.75rem;
     }
-    
+
     .join-input {
       flex: 1;
       padding: 1rem 1.25rem;
@@ -417,17 +434,17 @@
       letter-spacing: 2px;
       text-align: center;
     }
-    
+
     .join-input:focus {
       outline: none;
       border-color: var(--spotify-green);
     }
-    
+
     .join-input::placeholder {
       text-transform: none;
       letter-spacing: normal;
     }
-    
+
     .join-btn {
       padding: 1rem 2rem;
       background: var(--spotify-green);
@@ -438,25 +455,25 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .join-btn:hover {
       background: #1ed760;
       transform: scale(1.05);
     }
-    
+
     /* Empty State */
     .empty-state {
       text-align: center;
       padding: 3rem 1rem;
       color: var(--text-muted);
     }
-    
+
     .empty-state .icon {
       font-size: 3rem;
       margin-bottom: 1rem;
       opacity: 0.5;
     }
-    
+
     .empty-state h3 {
       font-size: 1.25rem;
       color: var(--text-primary);
@@ -464,6 +481,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- Cursor Glow Effect -->
   <div class="cursor-glow" id="cursorGlow"></div>
@@ -477,7 +495,7 @@
     <div class="gradient-blob blob-4"></div>
     <div class="noise-overlay"></div>
   </div>
-  
+
   <!-- Navigation -->
   <nav>
     <a href="/" class="logo">
@@ -497,18 +515,19 @@
     </div>
     <div class="nav-right">
       <div id="authButtonContainer"></div>
-      <div class="nav-badge">
-        <span class="badge-dot"></span>
-        <span>Powered by AI</span>
-      </div>
+      <a href="apify.html" class="pro-button">
+        <span class="pro-icon">⚡</span>
+        <span>Pro</span>
+      </a>
     </div>
   </nav>
-  
+
   <div class="page-container">
     <section class="collab-hero">
       <h1>🎧 Collaborative Playlists</h1>
-      <p>Create playlists together with friends, family, or the community. Share your unique session code and build the perfect playlist in real-time.</p>
-      
+      <p>Create playlists together with friends, family, or the community. Share your unique session code and build the
+        perfect playlist in real-time.</p>
+
       <div class="collab-actions">
         <button class="collab-btn primary" onclick="openCreateModal()">
           <span>✨</span> Start New Session
@@ -518,24 +537,24 @@
         </button>
       </div>
     </section>
-    
+
     <!-- Active Collab Sessions -->
     <section class="collab-section">
       <div class="section-header">
         <h2>🔥 Live Sessions</h2>
       </div>
-      
+
       <div class="collab-grid" id="liveSessionsGrid">
         <!-- Sessions will be loaded dynamically from API -->
       </div>
-      
+
       <div class="empty-state" id="noLiveSessions" style="display: none;">
         <div class="icon">🎵</div>
         <h3>No live sessions right now</h3>
         <p>Be the first to create one! Max 3 users per session.</p>
       </div>
     </section>
-    
+
     <!-- Join by Code Section -->
     <section class="collab-section" id="joinSection">
       <div class="join-section">
@@ -548,7 +567,7 @@
       </div>
     </section>
   </div>
-  
+
   <!-- Create Modal -->
   <div class="modal-overlay" id="createModal">
     <div class="modal">
@@ -556,22 +575,22 @@
         <h3>✨ New Collab Session</h3>
         <button class="modal-close" onclick="closeCreateModal()">×</button>
       </div>
-      
+
       <div class="form-group">
         <label>Session Name</label>
         <input type="text" placeholder="e.g., Friday Night Vibes" id="sessionNameInput">
       </div>
-      
+
       <div class="form-group">
         <label>Description (optional)</label>
         <textarea placeholder="What's the vibe? Tell your collaborators..." id="sessionDescInput"></textarea>
       </div>
-      
+
       <div class="form-group">
         <label>Initial Mood/Theme</label>
         <input type="text" placeholder="e.g., Chill, Party, Focus..." id="sessionMoodInput">
       </div>
-      
+
       <div class="modal-actions">
         <button class="modal-btn cancel" onclick="closeCreateModal()">Cancel</button>
         <button class="modal-btn create" onclick="createSession()">Create Session</button>
@@ -584,29 +603,29 @@
     let currentUser = null;
     let currentSession = null;
     let pollInterval = null;
-    
+
     // Get current user from auth - use window.userAuth from userAuth.js
     function getCurrentUser() {
       // Try window.userAuth first (from userAuth.js)
       if (window.userAuth && window.userAuth.isAuthenticated()) {
         const user = window.userAuth.getUser();
         if (user) {
-          return { 
-            id: user.username || user.id?.toString(), 
-            name: user.display_name || user.username 
+          return {
+            id: user.username || user.id?.toString(),
+            name: user.display_name || user.username
           };
         }
       }
-      
+
       // Fallback: check localStorage directly with correct keys
       const token = localStorage.getItem('auth_token');
       const userStr = localStorage.getItem('auth_user');
       if (token && userStr) {
         try {
           const user = JSON.parse(userStr);
-          return { 
-            id: user.username || user.id?.toString(), 
-            name: user.display_name || user.username 
+          return {
+            id: user.username || user.id?.toString(),
+            name: user.display_name || user.username
           };
         } catch (e) {
           console.error('Failed to parse user data');
@@ -614,21 +633,21 @@
       }
       return null;
     }
-    
+
     // Check if user is logged in
     function checkAuth() {
       currentUser = getCurrentUser();
     }
-    
+
     // Load live sessions from API
     async function loadLiveSessions() {
       try {
         const res = await fetch('/api/collab/live');
         const data = await res.json();
-        
+
         const grid = document.getElementById('liveSessionsGrid');
         const emptyState = document.getElementById('noLiveSessions');
-        
+
         if (data.success && data.sessions.length > 0) {
           emptyState.style.display = 'none';
           grid.innerHTML = data.sessions.map(session => `
@@ -659,7 +678,7 @@
         document.getElementById('noLiveSessions').style.display = 'block';
       }
     }
-    
+
     function openCreateModal() {
       if (!currentUser) {
         alert('Please sign in to create a session');
@@ -668,32 +687,32 @@
       }
       document.getElementById('createModal').classList.add('active');
     }
-    
+
     function closeCreateModal() {
       document.getElementById('createModal').classList.remove('active');
     }
-    
+
     function scrollToJoin() {
       document.getElementById('joinSection').scrollIntoView({ behavior: 'smooth' });
       document.getElementById('joinCodeInput').focus();
     }
-    
+
     // Create session via API
     async function createSession() {
       const name = document.getElementById('sessionNameInput').value.trim();
       const desc = document.getElementById('sessionDescInput').value.trim();
       const mood = document.getElementById('sessionMoodInput').value.trim();
-      
+
       if (!name) {
         alert('Please enter a session name');
         return;
       }
-      
+
       if (!currentUser) {
         alert('Please sign in first');
         return;
       }
-      
+
       try {
         const res = await fetch('/api/collab/create', {
           method: 'POST',
@@ -706,22 +725,20 @@
             userName: currentUser.name
           })
         });
-        
+
         const data = await res.json();
-        
+
         if (data.success) {
           closeCreateModal();
           currentSession = data.session;
-          
+
           // Clear form
           document.getElementById('sessionNameInput').value = '';
           document.getElementById('sessionDescInput').value = '';
           document.getElementById('sessionMoodInput').value = '';
-          
-          alert(`🎉 Session Created!\n\nSession: ${data.session.name}\nCode: ${data.session.code}\n\nShare this code with up to 2 friends (3 max)!`);
-          
-          // Reload live sessions
-          loadLiveSessions();
+
+          // Redirect to session page
+          window.location.href = `collab-session.html?code=${data.session.code}`;
         } else {
           alert('Failed to create session: ' + data.error);
         }
@@ -730,19 +747,19 @@
         alert('Failed to create session. Please try again.');
       }
     }
-    
+
     // Join by code input
     async function joinByCode() {
       const code = document.getElementById('joinCodeInput').value.toUpperCase().trim();
-      
+
       if (code.length !== 6) {
         alert('Please enter a valid 6-character code');
         return;
       }
-      
+
       await joinSession(code);
     }
-    
+
     // Join a session via API
     async function joinSession(code) {
       if (!currentUser) {
@@ -750,7 +767,7 @@
         window.location.href = 'signin.html';
         return;
       }
-      
+
       try {
         const res = await fetch('/api/collab/join', {
           method: 'POST',
@@ -761,13 +778,13 @@
             userName: currentUser.name
           })
         });
-        
+
         const data = await res.json();
-        
+
         if (data.success) {
           currentSession = data.session;
-          alert(`🎉 Joined "${data.session.name}"!\n\nYou can now collaborate with ${data.session.members.length} member(s).`);
-          loadLiveSessions();
+          // Redirect to session page
+          window.location.href = `collab-session.html?code=${code}`;
         } else {
           alert(data.error || 'Failed to join session');
         }
@@ -776,36 +793,36 @@
         alert('Failed to join session. Please check the code and try again.');
       }
     }
-    
+
     // Helper to escape HTML
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
-    
+
     // Auto-uppercase join code input
-    document.getElementById('joinCodeInput').addEventListener('input', function(e) {
+    document.getElementById('joinCodeInput').addEventListener('input', function (e) {
       e.target.value = e.target.value.toUpperCase();
     });
-    
+
     // Close modal on outside click
-    document.getElementById('createModal').addEventListener('click', function(e) {
+    document.getElementById('createModal').addEventListener('click', function (e) {
       if (e.target === this) {
         closeCreateModal();
       }
     });
-    
+
     // Load live sessions immediately (doesn't require auth)
     loadLiveSessions();
-    
+
     // Refresh live sessions every 10 seconds
     setInterval(loadLiveSessions, 10000);
   </script>
-  
+
   <!-- Cursor Glow Effect -->
   <script src="cursor.js"></script>
-  
+
   <!-- Auth Scripts -->
   <script src="userAuth.js"></script>
   <script src="auth-button.js"></script>
@@ -813,13 +830,13 @@
     // Initialize auth button and check auth AFTER userAuth.js is loaded
     document.addEventListener('DOMContentLoaded', () => {
       new AuthButton('authButtonContainer');
-      
+
       // Re-check auth now that userAuth.js is loaded
       if (typeof checkAuth === 'function') {
         checkAuth();
       }
     });
-    
+
     // Also check auth after a short delay to ensure userAuth is ready
     setTimeout(() => {
       if (typeof checkAuth === 'function') {
@@ -829,4 +846,5 @@
     }, 100);
   </script>
 </body>
+
 </html>

@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collab Session - Playlistify AI</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="pages.css">
+    <link rel="stylesheet" href="auth.css">
+    <style>
+        .session-container {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            height: calc(100vh - 80px);
+        }
+
+        /* Left: Playlist Panel */
+        .playlist-panel {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .playlist-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .playlist-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .session-code {
+            background: rgba(29, 185, 84, 0.2);
+            color: var(--spotify-green);
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        .session-code:hover {
+            background: rgba(29, 185, 84, 0.3);
+        }
+
+        .playlist-tracks {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .track-item:hover {
+            border-color: rgba(29, 185, 84, 0.3);
+        }
+
+        .track-number {
+            width: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .track-cover {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--spotify-green), var(--accent-purple));
+        }
+
+        .track-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .track-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-artist {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .track-added-by {
+            font-size: 0.75rem;
+            color: var(--accent-purple);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .track-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .track-action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .track-action-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .playlist-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .track-count {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .save-playlist-btn {
+            background: linear-gradient(135deg, var(--spotify-green), #1ed760);
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .save-playlist-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+        }
+
+        /* Right: Chat Panel */
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .chat-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .chat-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .member-count {
+            background: rgba(29, 185, 84, 0.2);
+            color: var(--spotify-green);
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 100px;
+        }
+
+        .members-list {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .member-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--spotify-green), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #000;
+            position: relative;
+        }
+
+        .member-avatar.owner::after {
+            content: '👑';
+            position: absolute;
+            top: -8px;
+            right: -4px;
+            font-size: 0.6rem;
+        }
+
+        .member-avatar.online::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 90%;
+        }
+
+        .message.own {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--spotify-green), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #000;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            border-top-left-radius: 4px;
+            padding: 0.75rem 1rem;
+        }
+
+        .message.own .message-content {
+            background: rgba(29, 185, 84, 0.15);
+            border-color: rgba(29, 185, 84, 0.3);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 4px;
+        }
+
+        .message-sender {
+            font-size: 0.75rem;
+            color: var(--spotify-green);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .message-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Action message (song added/removed) */
+        .message.action {
+            align-self: center;
+            max-width: 100%;
+        }
+
+        .message.action .message-content {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+            border-radius: 100px;
+            padding: 0.5rem 1rem;
+            text-align: center;
+        }
+
+        .message.action .message-text {
+            font-size: 0.8rem;
+            color: var(--accent-purple);
+        }
+
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .suggestion-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .suggestion-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-btn:hover {
+            border-color: var(--spotify-green);
+            color: var(--spotify-green);
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--spotify-green);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--spotify-green), #1ed760);
+            border: none;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Empty playlist state */
+        .empty-playlist {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-playlist .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-playlist h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .session-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .playlist-panel {
+                min-height: 400px;
+            }
+
+            .chat-panel {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cursor Glow Effect -->
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <!-- Animated Gradient Background -->
+    <div class="gradient-bg">
+        <div class="gradient-overlay"></div>
+        <div class="gradient-blob blob-1"></div>
+        <div class="gradient-blob blob-2"></div>
+        <div class="gradient-blob blob-3"></div>
+        <div class="gradient-blob blob-4"></div>
+        <div class="noise-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="/" class="logo">
+            <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
+            <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="app.html" class="nav-link">Home</a>
+            <a href="collab.html" class="nav-link active">Collab</a>
+            <a href="apify.html" class="nav-link">Pro</a>
+        </div>
+        <div class="nav-right">
+            <div id="authButtonContainer"></div>
+            <a href="apify.html" class="pro-button">
+                <span class="pro-icon">⚡</span>
+                <span>Pro</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="session-container">
+        <!-- Left: Playlist Panel -->
+        <div class="playlist-panel">
+            <div class="playlist-header">
+                <span class="playlist-title" id="sessionName">Collab Playlist</span>
+                <span class="session-code" id="sessionCode" title="Click to copy" onclick="copyCode()">------</span>
+            </div>
+
+            <div class="playlist-tracks" id="playlistTracks">
+                <div class="empty-playlist" id="emptyPlaylist">
+                    <div class="icon">🎵</div>
+                    <h3>No tracks yet</h3>
+                    <p>Use the chat to suggest songs or type a mood!</p>
+                </div>
+            </div>
+
+            <div class="playlist-footer">
+                <span class="track-count"><span id="trackCount">0</span> tracks</span>
+                <button class="save-playlist-btn" onclick="saveToSpotify()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path
+                            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+                    </svg>
+                    Save to Spotify
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Chat Panel -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div class="chat-header-top">
+                    <span class="chat-title">
+                        💬 Collab Chat
+                        <span class="member-count" id="memberCount">1/3</span>
+                    </span>
+                </div>
+                <div class="members-list" id="membersList">
+                    <!-- Members will be rendered here -->
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be rendered here -->
+            </div>
+
+            <div class="chat-input-area">
+                <div class="suggestion-actions">
+                    <button class="suggestion-btn" onclick="sendSuggestion('Add some chill vibes')">+ Chill
+                        vibes</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('More upbeat songs')">+ Upbeat</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Add Hindi songs')">+ Hindi</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Remove last song')">- Last song</button>
+                </div>
+                <div class="chat-input-group">
+                    <input type="text" class="chat-input" id="chatInput"
+                        placeholder="Suggest a song, mood, or change..." onkeypress="handleKeyPress(event)">
+                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cursor.js"></script>
+    <script src="userAuth.js"></script>
+    <script src="auth-button.js"></script>
+    <script>
+        // State
+        let sessionCode = null;
+        let sessionData = null;
+        let currentUser = null;
+        let tracks = [];
+        let messages = [];
+        let pollInterval = null;
+
+        // Get session code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        sessionCode = urlParams.get('code');
+
+        // Get current user
+        function getCurrentUser() {
+            const userStr = localStorage.getItem('auth_user');
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    return { id: user.username || user.id, name: user.display_name || user.username };
+                } catch (e) { }
+            }
+            return null;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            new AuthButton('authButtonContainer');
+            currentUser = getCurrentUser();
+
+            if (!sessionCode) {
+                alert('No session code provided. Redirecting to collab page.');
+                window.location.href = 'collab.html';
+                return;
+            }
+
+            if (!currentUser) {
+                alert('Please sign in to join a session');
+                window.location.href = 'signin.html';
+                return;
+            }
+
+            await loadSession();
+            startPolling();
+        });
+
+        // Load session data
+        async function loadSession() {
+            try {
+                const res = await fetch(`/api/collab/session/${sessionCode}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    sessionData = data.session;
+                    document.getElementById('sessionName').textContent = sessionData.name;
+                    document.getElementById('sessionCode').textContent = sessionCode;
+
+                    tracks = sessionData.tracks || [];
+                    messages = sessionData.messages || [];
+
+                    renderTracks();
+                    renderMembers();
+                    renderMessages();
+                } else {
+                    alert('Session not found');
+                    window.location.href = 'collab.html';
+                }
+            } catch (err) {
+                console.error('Load session error:', err);
+            }
+        }
+
+        // Poll for updates
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/collab/session/${sessionCode}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        sessionData = data.session;
+
+                        // Check for new tracks or messages
+                        if (data.session.tracks?.length !== tracks.length) {
+                            tracks = data.session.tracks || [];
+                            renderTracks();
+                        }
+                        if (data.session.messages?.length !== messages.length) {
+                            messages = data.session.messages || [];
+                            renderMessages();
+                        }
+                        renderMembers();
+                    }
+                } catch (err) { }
+            }, 3000);
+        }
+
+        // Render tracks
+        function renderTracks() {
+            const container = document.getElementById('playlistTracks');
+            const emptyState = document.getElementById('emptyPlaylist');
+            const countEl = document.getElementById('trackCount');
+
+            countEl.textContent = tracks.length;
+
+            if (tracks.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = tracks.map((track, i) => `
+        <div class="track-item">
+          <span class="track-number">${i + 1}</span>
+          <img src="${track.image || ''}" class="track-cover" alt="" onerror="this.style.display='none'">
+          <div class="track-info">
+            <div class="track-name">${escapeHtml(track.name)}</div>
+            <div class="track-artist">${escapeHtml(track.artist)}</div>
+            <div class="track-added-by">
+              <span>👤</span> Added by ${escapeHtml(track.addedBy || 'Unknown')}
+            </div>
+          </div>
+          <div class="track-actions">
+            <button class="track-action-btn" onclick="removeTrack(${i})" title="Remove">×</button>
+          </div>
+        </div>
+      `).join('') + `<div id="emptyPlaylist" style="display: none;"></div>`;
+        }
+
+        // Render members
+        function renderMembers() {
+            const container = document.getElementById('membersList');
+            const countEl = document.getElementById('memberCount');
+            const members = sessionData?.members || [];
+
+            countEl.textContent = `${members.length}/3`;
+
+            container.innerHTML = members.map((member, i) => `
+        <div class="member-avatar ${i === 0 ? 'owner' : ''} online" title="${escapeHtml(member.name)}">
+          ${member.name.charAt(0).toUpperCase()}
+        </div>
+      `).join('');
+        }
+
+        // Render messages
+        function renderMessages() {
+            const container = document.getElementById('chatMessages');
+
+            container.innerHTML = messages.map(msg => {
+                const isOwn = msg.userId === currentUser?.id;
+                const isAction = msg.type === 'action';
+
+                if (isAction) {
+                    return `
+            <div class="message action">
+              <div class="message-content">
+                <div class="message-text">${escapeHtml(msg.text)}</div>
+              </div>
+            </div>
+          `;
+                }
+
+                return `
+          <div class="message ${isOwn ? 'own' : ''}">
+            <div class="message-avatar">${msg.userName?.charAt(0).toUpperCase() || '?'}</div>
+            <div class="message-content">
+              ${!isOwn ? `<div class="message-sender">${escapeHtml(msg.userName)}</div>` : ''}
+              <div class="message-text">${escapeHtml(msg.text)}</div>
+              <div class="message-time">${formatTime(msg.timestamp)}</div>
+            </div>
+          </div>
+        `;
+            }).join('');
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+
+            try {
+                const res = await fetch('/api/collab/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: sessionCode,
+                        userId: currentUser.id,
+                        userName: currentUser.name,
+                        text: text
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    // If AI added tracks, update
+                    if (data.tracksAdded) {
+                        tracks = data.session.tracks;
+                        renderTracks();
+                    }
+                    messages = data.session.messages;
+                    renderMessages();
+                }
+            } catch (err) {
+                console.error('Send message error:', err);
+            }
+        }
+
+        // Send suggestion shortcut
+        function sendSuggestion(text) {
+            document.getElementById('chatInput').value = text;
+            sendMessage();
+        }
+
+        // Remove track
+        async function removeTrack(index) {
+            try {
+                const res = await fetch('/api/collab/remove-track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: sessionCode,
+                        trackIndex: index,
+                        userId: currentUser.id,
+                        userName: currentUser.name
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    tracks = data.session.tracks;
+                    messages = data.session.messages;
+                    renderTracks();
+                    renderMessages();
+                }
+            } catch (err) {
+                console.error('Remove track error:', err);
+            }
+        }
+
+        // Save to Spotify
+        async function saveToSpotify() {
+            if (tracks.length === 0) {
+                alert('Add some tracks first!');
+                return;
+            }
+            alert('Saving to Spotify... (This would create a playlist with ' + tracks.length + ' tracks)');
+            // TODO: Implement actual Spotify save
+        }
+
+        // Copy session code
+        function copyCode() {
+            navigator.clipboard.writeText(sessionCode);
+            const el = document.getElementById('sessionCode');
+            el.textContent = 'Copied!';
+            setTimeout(() => el.textContent = sessionCode, 1500);
+        }
+
+        // Handle enter key
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        // Format time
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const d = new Date(timestamp);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Cleanup on leave
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) clearInterval(pollInterval);
+        });
+    </script>
+</body>
+
+</html>
