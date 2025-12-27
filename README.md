@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
-**Playlistify AI** is a conversational AI music agent that transforms natural language prompts like "late night coding vibes" or "मुझे खुशी के गाने सुनने हैं" into perfectly curated Spotify playlists. It understands your real-time mood, learns your evolving taste through built-in memory retention, supports 4 languages (English, Hindi, Tamil, Telugu), and creates playlists in under 10 seconds—completely free.
+**Playlistify AI** is a conversational AI music agent that instantly transforms natural language prompts like "late night coding vibes" or "मुझे खुशी के गाने सुनने हैं" into perfectly curated Spotify playlists. Unlike traditional recommendation engines that rely on static listening history, Playlistify understands your real-time mood, learns your evolving taste through built-in memory retention, supports 4 languages (English, Hindi, Tamil, Telugu), and lets you download tracks as MP3s all in under 10 seconds, completely free.
 
 **Live Application:** [playlistify.up.railway.app](https://playlistify.up.railway.app)
 
