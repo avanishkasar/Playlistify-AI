@@ -4,7 +4,7 @@
  */
 
 import express, { Request, Response } from "express";
-import { getAllUsersWithStats, getAdminDashboardStats, validateAdminCredentials } from "./database.js";
+import { getAllUsersWithStats, getAdminDashboardStats, validateAdminCredentials } from "../database.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -25,9 +25,9 @@ function generateAdminToken(): string {
 function createAdminSession(): string {
   const token = generateAdminToken();
   const expiresAt = Date.now() + (1 * 60 * 60 * 1000); // 1 hour
-  
+
   adminSessions.set(token, { expiresAt });
-  
+
   return token;
 }
 
@@ -36,14 +36,14 @@ function createAdminSession(): string {
  */
 function validateAdminSession(token: string): boolean {
   const session = adminSessions.get(token);
-  
+
   if (!session) return false;
-  
+
   if (Date.now() > session.expiresAt) {
     adminSessions.delete(token);
     return false;
   }
-  
+
   return true;
 }
 
@@ -52,7 +52,7 @@ function validateAdminSession(token: string): boolean {
  */
 function requireAdminAuth(req: Request, res: Response, next: Function): void {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (!token || !validateAdminSession(token)) {
     res.status(401).json({
       error: 'unauthorized',
@@ -60,7 +60,7 @@ function requireAdminAuth(req: Request, res: Response, next: Function): void {
     });
     return;
   }
-  
+
   next();
 }
 
@@ -69,7 +69,7 @@ function requireAdminAuth(req: Request, res: Response, next: Function): void {
  */
 router.post('/login', (req: Request, res: Response): void => {
   const { username, password } = req.body;
-  
+
   if (!username || !password) {
     res.status(400).json({
       error: 'missing_credentials',
@@ -77,10 +77,10 @@ router.post('/login', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   if (validateAdminCredentials(username, password)) {
     const token = createAdminSession();
-    
+
     res.json({
       success: true,
       message: 'Admin login successful',
@@ -99,11 +99,11 @@ router.post('/login', (req: Request, res: Response): void => {
  */
 router.post('/logout', (req: Request, res: Response) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (token) {
     adminSessions.delete(token);
   }
-  
+
   res.json({ success: true, message: 'Logged out' });
 });
 
@@ -112,7 +112,7 @@ router.post('/logout', (req: Request, res: Response) => {
  */
 router.get('/verify', (req: Request, res: Response) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (token && validateAdminSession(token)) {
     res.json({ valid: true });
   } else {
@@ -176,7 +176,7 @@ router.get('/users-credentials', (_req: Request, res: Response) => {
     { username: 'meera_playlist', password: 'Meera@Play1' },
     { username: 'aditya_mix', password: 'AdityaM!234' },
   ];
-  
+
   res.json({ users: seedUsers });
 });
 

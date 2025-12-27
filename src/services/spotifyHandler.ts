@@ -1,6 +1,6 @@
 import SpotifyWebApi from "spotify-web-api-node";
-import { searchCache, recommendCache } from "./cache.js";
-import { SpotifyTrack, MCPResponse } from "./types.js";
+import { searchCache, recommendCache } from "../utils/cache.js";
+import { SpotifyTrack, MCPResponse } from "../types.js";
 
 let spotifyApi: SpotifyWebApi;
 let tokenExpiresAt = 0;
@@ -35,38 +35,38 @@ const GENRE_MAPPING: Record<string, string> = {
   'lo-fi': 'chill',
   'lofi': 'chill',
   'lo fi': 'chill',
-  
+
   // Nature/meditation
   'nature': 'ambient',
   'meditation': 'ambient',
   'zen': 'ambient',
-  
+
   // Electronic variations
   'synthwave': 'synth-pop',
   'chillwave': 'chill',
   'vaporwave': 'electronic',
   'post-rock': 'rock',
-  
+
   // Pop variations
   'bedroom-pop': 'indie-pop',
   'electropop': 'electro',
   'dream-pop': 'indie-pop',
-  
+
   // R&B/Soul
   'rnb': 'r-n-b',
   'neo-soul': 'soul',
-  
+
   // Shoegaze and others
   'shoegaze': 'indie',
   'orchestral': 'classical',
   'cinematic': 'soundtracks',
-  
+
   // World music
   'world': 'world-music',
-  
+
   // Metal variations
   'progressive-metal': 'metal',
-  
+
   // Hip-hop variations
   'trap': 'hip-hop',
   'rap': 'hip-hop',
@@ -77,10 +77,10 @@ const GENRE_MAPPING: Record<string, string> = {
  */
 export function validateAndMapGenres(genres: string[]): string[] {
   const validatedGenres: string[] = [];
-  
+
   for (const genre of genres) {
     const normalizedGenre = genre.toLowerCase().trim();
-    
+
     // Check if it's directly valid
     if (VALID_SPOTIFY_GENRES.has(normalizedGenre)) {
       if (!validatedGenres.includes(normalizedGenre)) {
@@ -106,13 +106,13 @@ export function validateAndMapGenres(genres: string[]): string[] {
       }
     }
   }
-  
+
   // Ensure we return at least one genre
   if (validatedGenres.length === 0) {
     console.log('[SpotifyHandler] No valid genres found, defaulting to pop');
     return ['pop'];
   }
-  
+
   console.log('[SpotifyHandler] Validated genres:', { input: genres, output: validatedGenres });
   return validatedGenres.slice(0, 5);
 }
@@ -194,8 +194,8 @@ export async function searchTracks(
       id: t.id,
       name: t.name,
       artists: t.artists.map((a: any) => ({ id: a.id, name: a.name })),
-      album: { 
-        id: t.album.id, 
+      album: {
+        id: t.album.id,
         name: t.album.name,
         images: t.album.images
       },
@@ -266,10 +266,10 @@ export async function getRecommendations(
       id: t.id,
       name: t.name,
       artists: t.artists.map((a: any) => ({ id: a.id, name: a.name })),
-      album: { 
-        id: t.album.id, 
+      album: {
+        id: t.album.id,
         name: t.album.name,
-        images: t.album.images 
+        images: t.album.images
       },
       uri: t.uri,
       external_urls: t.external_urls,
@@ -293,7 +293,7 @@ export async function getRecommendations(
   } catch (err: any) {
     // Better error logging
     const errorMessage = err?.body?.error?.message || err?.message || JSON.stringify(err);
-    console.error("Get recommendations failed", { 
+    console.error("Get recommendations failed", {
       error: errorMessage,
       statusCode: err?.statusCode
     });
@@ -383,17 +383,17 @@ export async function createPlaylist(
 export async function setPlaylistCover(playlistId: string, imageUrl: string): Promise<MCPResponse> {
   try {
     await ensureAccessToken();
-    
+
     // Fetch the image from the URL
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
       return { status: 'error', message: 'Failed to fetch image from URL' };
     }
-    
+
     // Get image as buffer and convert to base64
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = Buffer.from(imageBuffer).toString('base64');
-    
+
     // Spotify requires the image to be under 256KB and in JPEG format
     // Pollinations.ai returns images that should be compatible
     // If the image is too large, we'll skip the upload
@@ -401,18 +401,18 @@ export async function setPlaylistCover(playlistId: string, imageUrl: string): Pr
       console.log('Image too large for Spotify cover, skipping upload');
       return { status: 'error', message: 'Image too large for Spotify' };
     }
-    
+
     // Upload to Spotify
     await spotifyApi.uploadCustomPlaylistCoverImage(playlistId, base64Image);
-    
+
     console.log('Playlist cover uploaded successfully', { playlistId });
-    
+
     return {
       status: 'success',
       data: { message: 'Cover image uploaded successfully' },
       timestamp: new Date().toISOString(),
     };
-    
+
   } catch (err: any) {
     console.error('Set playlist cover failed:', err?.message || err);
     return {
@@ -428,25 +428,25 @@ export async function setPlaylistCover(playlistId: string, imageUrl: string): Pr
 export async function addTracksToPlaylist(playlistId: string, trackUris: string[]): Promise<MCPResponse> {
   try {
     await ensureAccessToken();
-    
+
     if (!trackUris || trackUris.length === 0) {
       return { status: 'error', message: 'No tracks provided' };
     }
-    
+
     // Add tracks in chunks of 100 (Spotify limit)
     for (let i = 0; i < trackUris.length; i += 100) {
       const chunk = trackUris.slice(i, i + 100);
       await spotifyApi.addTracksToPlaylist(playlistId, chunk);
     }
-    
+
     console.log('Tracks added to playlist', { playlistId, trackCount: trackUris.length });
-    
+
     return {
       status: 'success',
       data: { added: trackUris.length },
       timestamp: new Date().toISOString(),
     };
-    
+
   } catch (err: any) {
     console.error('Add tracks failed:', err?.message || err);
     return {
@@ -463,14 +463,14 @@ export async function addTracksToPlaylist(playlistId: string, trackUris: string[
 export async function getAudioFeatures(trackIds: string[]): Promise<MCPResponse> {
   try {
     await ensureAccessToken();
-    
+
     if (!trackIds || trackIds.length === 0) {
       return { status: 'error', message: 'No track IDs provided' };
     }
-    
+
     // Spotify allows up to 100 tracks per request
     const allFeatures: any[] = [];
-    
+
     for (let i = 0; i < trackIds.length; i += 100) {
       const chunk = trackIds.slice(i, i + 100);
       const response = await spotifyApi.getAudioFeaturesForTracks(chunk);
@@ -478,15 +478,15 @@ export async function getAudioFeatures(trackIds: string[]): Promise<MCPResponse>
         allFeatures.push(...response.body.audio_features);
       }
     }
-    
+
     console.log('Audio features fetched', { trackCount: allFeatures.length });
-    
+
     return {
       status: 'success',
       data: { audioFeatures: allFeatures },
       timestamp: new Date().toISOString(),
     };
-    
+
   } catch (err: any) {
     console.error('Get audio features failed:', err?.message || err);
     return {
@@ -502,18 +502,18 @@ export async function getAudioFeatures(trackIds: string[]): Promise<MCPResponse>
 export async function getPlaylistTracks(playlistId: string): Promise<MCPResponse> {
   try {
     await ensureAccessToken();
-    
+
     const tracks: any[] = [];
     let offset = 0;
     const limit = 100;
-    
+
     // Paginate through all tracks
     while (true) {
       const response = await spotifyApi.getPlaylistTracks(playlistId, { offset, limit });
       const items = response.body.items;
-      
+
       if (!items || items.length === 0) break;
-      
+
       tracks.push(...items.map(item => ({
         id: item.track?.id,
         uri: item.track?.uri,
@@ -526,19 +526,19 @@ export async function getPlaylistTracks(playlistId: string): Promise<MCPResponse
         duration_ms: item.track?.duration_ms,
         preview_url: item.track?.preview_url
       })));
-      
+
       if (items.length < limit) break;
       offset += limit;
     }
-    
+
     console.log('Playlist tracks fetched', { playlistId, trackCount: tracks.length });
-    
+
     return {
       status: 'success',
       data: { tracks },
       timestamp: new Date().toISOString(),
     };
-    
+
   } catch (err: any) {
     console.error('Get playlist tracks failed:', err?.message || err);
     return {

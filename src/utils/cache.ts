@@ -1,4 +1,4 @@
-import { CacheEntry } from "./types.js";
+import { CacheEntry } from "../types.js";
 
 /**
  * Simple in-memory LRU cache for Spotify API responses

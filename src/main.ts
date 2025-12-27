@@ -22,6 +22,7 @@ import { parseEnhancedIntent, generateExplanation, suggestModifications } from "
 import userAuthRoutes from "./routes/userAuth.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import collabRoutes from "./routes/collabRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 // Utils
 import { parsePlaylistIntent } from "./utils/nlpHelper.js";
 import { RateLimiter } from "./utils/rateLimiter.js";
@@ -46,6 +47,9 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json({ limit: '10mb' }));  // Allow larger payloads for audio
+
+// Mount API routes
+app.use("/api/payment", paymentRoutes);
 
 // Static files - index.html (landing page) will auto-serve at /
 app.use(express.static("public"));

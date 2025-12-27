@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
   <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="pages.css">
@@ -35,8 +38,15 @@
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-15px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-15px);
+      }
     }
 
     .landing-title {
@@ -117,6 +127,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- Animated Gradient Background -->
   <div class="gradient-bg">
@@ -138,55 +149,55 @@
       <a href="app.html" class="nav-link">Home</a>
       <a href="collab.html" class="nav-link">Collab</a>
       <a href="timeline.html" class="nav-link">Timeline</a>
-      <a href="how-it-works.html" class="nav-link">How It Works</a>
       <a href="curated.html" class="nav-link">Curated</a>
     </div>
     <div class="nav-right">
       <div id="authButtonContainer"></div>
-      <div class="nav-badge">
-        <span class="badge-dot"></span>
-        <span>Powered by AI</span>
-      </div>
+      <a href="apify.html" class="pro-button">
+        <span class="pro-icon">⚡</span>
+        <span>Pro</span>
+      </a>
     </div>
   </nav>
 
   <!-- Landing Content -->
-  <div class="landing-container">
+  <div class="landing-container page-transition">
     <div class="landing-logo">
       <img src="images/favicon.png" alt="Playlistify AI">
     </div>
-    
+
     <h1 class="landing-title">
       Playlistify <span class="highlight">AI</span>
     </h1>
-    
+
     <p class="landing-tagline">
       Describe your mood. Get your playlist. In seconds.<br>
       Your personal AI music agent that actually understands you.
     </p>
-    
+
     <a href="app.html" class="landing-cta">
       <span>Get Started</span>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 12h14"></path>
         <path d="m12 5 7 7-7 7"></path>
       </svg>
     </a>
 
     <div class="landing-features">
-      <div class="feature-badge">
+      <div class="feature-badge stagger-item hover-lift">
         <i class="fas fa-bolt"></i>
         <span>Instant Generation</span>
       </div>
-      <div class="feature-badge">
+      <div class="feature-badge stagger-item hover-lift">
         <i class="fas fa-brain"></i>
         <span>AI-Powered</span>
       </div>
-      <div class="feature-badge">
+      <div class="feature-badge stagger-item hover-lift">
         <i class="fas fa-music"></i>
         <span>100M+ Tracks</span>
       </div>
-      <div class="feature-badge">
+      <div class="feature-badge stagger-item hover-lift">
         <i class="fas fa-microphone"></i>
         <span>Voice Input</span>
       </div>
@@ -199,7 +210,31 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       new AuthButton('authButtonContainer');
+
+      // Smooth page transition for Get Started button
+      const ctaButton = document.querySelector('.landing-cta');
+      if (ctaButton) {
+        ctaButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          const href = ctaButton.getAttribute('href');
+
+          // Fade out animation
+          document.body.style.transition = 'opacity 0.3s ease';
+          document.body.style.opacity = '0';
+
+          setTimeout(() => {
+            window.location.href = href;
+          }, 300);
+        });
+      }
+
+      // Add press effect and glow to CTA
+      const cta = document.querySelector('.landing-cta');
+      if (cta) {
+        cta.classList.add('press-effect', 'glow-pulse');
+      }
     });
   </script>
 </body>
+
 </html>

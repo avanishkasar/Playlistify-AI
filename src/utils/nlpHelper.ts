@@ -1,4 +1,4 @@
-import { NLPPlaylistIntent } from './types.js';
+import { NLPPlaylistIntent } from '../types.js';
 
 /**
  * Optional NLP helper for interpreting natural language playlist requests
@@ -123,7 +123,7 @@ function detectLanguage(text: string): 'english' | 'hindi' | 'tamil' | 'telugu' 
 export function parsePlaylistIntent(description: string): NLPPlaylistIntent {
   const lower = description.toLowerCase();
   const intent: NLPPlaylistIntent = {};
-  
+
   // Detect language
   const language = detectLanguage(description);
   console.log('Detected language:', language);
@@ -180,7 +180,7 @@ export function parsePlaylistIntent(description: string): NLPPlaylistIntent {
 export async function parsePlaylistIntentWithLLM(description: string): Promise<NLPPlaylistIntent> {
   // Placeholder for LLM integration
   // You can implement this using OpenAI SDK or Google Generative AI
-  
+
   console.log('LLM-based NLP not yet implemented, falling back to keyword matching');
   return parsePlaylistIntent(description);
 }

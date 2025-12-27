@@ -51,7 +51,7 @@ export function initializeDatabase() {
       profile_picture TEXT
     )
   `);
-  
+
   // Add profile_picture column if it doesn't exist (for existing databases)
   try {
     db.exec(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
@@ -86,8 +86,37 @@ export function initializeDatabase() {
     )
   `);
 
+  // Payment orders table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS payment_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT UNIQUE NOT NULL,
+      user_id TEXT NOT NULL,
+      product_type TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      pro_code TEXT UNIQUE NOT NULL,
+      transaction_id TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      verified_at DATETIME
+    )
+  `);
+
+  // Pro activations table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS pro_activations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      pro_code TEXT NOT NULL,
+      product_type TEXT NOT NULL,
+      activated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME,
+      FOREIGN KEY (pro_code) REFERENCES payment_orders(pro_code)
+    )
+  `);
+
   console.log('✅ Database initialized successfully');
-  
+
   // Seed initial users if database is empty
   seedInitialUsers();
 }
@@ -102,9 +131,9 @@ function seedInitialUsers() {
     console.log('ℹ️ Users already exist, skipping seed');
     return;
   }
-  
+
   console.log('🌱 Seeding initial users...');
-  
+
   // 11 users for leaderboard - Top 5 with double digits, rest with 2-3 playlists
   const users = [
     { username: 'avanish', email: 'avanish@playlistify.ai', password: 'Avanish@123', displayName: 'Avanish Kasar', playlists: 47 },
@@ -119,32 +148,32 @@ function seedInitialUsers() {
     { username: 'meera_playlist', email: 'meera.music@yahoo.com', password: 'Meera@Play1', displayName: 'Meera Joshi', playlists: 2 },
     { username: 'aditya_mix', email: 'aditya.mix@gmail.com', password: 'AdityaM!234', displayName: 'Aditya Verma', playlists: 2 }
   ];
-  
+
   const insertUser = db.prepare(`
     INSERT INTO users (username, email, password_hash, display_name)
     VALUES (?, ?, ?, ?)
   `);
-  
+
   const insertStats = db.prepare(`
     INSERT INTO user_stats (user_id, total_playlists, total_tracks_added, last_activity)
     VALUES (?, ?, ?, datetime('now', '-' || ? || ' hours'))
   `);
-  
+
   for (const user of users) {
     try {
       const passwordHash = hashPassword(user.password);
       const result = insertUser.run(user.username, user.email, passwordHash, user.displayName);
-      
+
       // Insert stats with random activity time
       const hoursAgo = Math.floor(Math.random() * 168); // Random time in last week
       insertStats.run(result.lastInsertRowid, user.playlists, user.playlists * 15, hoursAgo);
-      
+
       console.log(`  ✓ Created user: ${user.username} (${user.playlists} playlists)`);
     } catch (error: any) {
       console.log(`  ⚠️ Skipped ${user.username}: ${error.message}`);
     }
   }
-  
+
   console.log('✅ User seeding complete!');
 }
 
@@ -160,22 +189,22 @@ export function hashPassword(password: string): string {
  */
 export function createUser(username: string, email: string, password: string) {
   const passwordHash = hashPassword(password);
-  
+
   try {
     const stmt = db.prepare(`
       INSERT INTO users (username, email, password_hash, display_name)
       VALUES (?, ?, ?, ?)
     `);
-    
+
     const result = stmt.run(username, email, passwordHash, username);
-    
+
     // Initialize user stats
     const statsStmt = db.prepare(`
       INSERT INTO user_stats (user_id, total_playlists, total_tracks_added)
       VALUES (?, 0, 0)
     `);
     statsStmt.run(result.lastInsertRowid);
-    
+
     return {
       id: result.lastInsertRowid,
       username,
@@ -195,15 +224,15 @@ export function createUser(username: string, email: string, password: string) {
  */
 export function authenticateUser(username: string, password: string) {
   const passwordHash = hashPassword(password);
-  
+
   const stmt = db.prepare(`
     SELECT id, username, email, display_name, spotify_connected
     FROM users
     WHERE username = ? AND password_hash = ?
   `);
-  
+
   const user = stmt.get(username, passwordHash) as User | undefined;
-  
+
   if (user) {
     // Update last login
     const updateStmt = db.prepare(`
@@ -211,7 +240,7 @@ export function authenticateUser(username: string, password: string) {
     `);
     updateStmt.run(user.id);
   }
-  
+
   return user || null;
 }
 
@@ -224,7 +253,7 @@ export function getUserById(userId: number): User | undefined {
     FROM users
     WHERE id = ?
   `);
-  
+
   return stmt.get(userId) as User | undefined;
 }
 
@@ -236,12 +265,12 @@ export function createPlaylist(userId: number, playlistName: string, playlistTyp
     INSERT INTO playlists (user_id, playlist_name, playlist_type, description)
     VALUES (?, ?, ?, ?)
   `);
-  
+
   const result = stmt.run(userId, playlistName, playlistType, description || '');
-  
+
   // Update user stats
   updateUserStats(userId);
-  
+
   return {
     id: result.lastInsertRowid,
     playlist_name: playlistName,
@@ -259,7 +288,7 @@ export function getUserPlaylists(userId: number) {
     WHERE user_id = ?
     ORDER BY created_at DESC
   `);
-  
+
   return stmt.all(userId);
 }
 
@@ -277,7 +306,7 @@ export function getUserStats(userId: number) {
     WHERE us.user_id = ?
     GROUP BY us.user_id
   `);
-  
+
   return stmt.get(userId);
 }
 
@@ -292,7 +321,7 @@ function updateUserStats(userId: number) {
       last_activity = CURRENT_TIMESTAMP
     WHERE user_id = ?
   `);
-  
+
   stmt.run(userId, userId);
 }
 
@@ -305,7 +334,7 @@ export function updatePlaylistTrackCount(playlistId: number, trackCount: number)
     SET track_count = ?
     WHERE id = ?
   `);
-  
+
   stmt.run(trackCount, playlistId);
 }
 
@@ -317,13 +346,13 @@ export function deletePlaylist(playlistId: number, userId: number) {
     DELETE FROM playlists
     WHERE id = ? AND user_id = ?
   `);
-  
+
   const result = stmt.run(playlistId, userId);
-  
+
   if (result.changes > 0) {
     updateUserStats(userId);
   }
-  
+
   return result.changes > 0;
 }
 
@@ -338,7 +367,7 @@ export function incrementPlaylistCount(userId: number) {
       last_activity = CURRENT_TIMESTAMP
     WHERE user_id = ?
   `);
-  
+
   stmt.run(userId);
 }
 
@@ -362,7 +391,7 @@ export function getAllUsersWithStats() {
     LEFT JOIN user_stats us ON u.id = us.user_id
     ORDER BY u.created_at DESC
   `);
-  
+
   return stmt.all();
 }
 
@@ -380,7 +409,7 @@ export function getAdminDashboardStats() {
     SELECT COUNT(*) as count FROM playlists 
     WHERE date(created_at) = date('now')
   `).get() as any;
-  
+
   return {
     totalUsers: userCount?.count || 0,
     totalPlaylists: playlistCount?.count || 0,
@@ -414,7 +443,7 @@ export function getLeaderboard(limit: number = 20) {
     ORDER BY COALESCE(us.total_playlists, 0) DESC
     LIMIT ?
   `);
-  
+
   return stmt.all(limit);
 }
 
@@ -462,18 +491,174 @@ export function updateUsername(userId: number, username: string) {
 export function updatePassword(userId: number, currentPassword: string, newPassword: string) {
   const currentHash = hashPassword(currentPassword);
   const newHash = hashPassword(newPassword);
-  
+
   // Verify current password
   const user = db.prepare(`SELECT password_hash FROM users WHERE id = ?`).get(userId) as any;
-  
+
   if (!user || user.password_hash !== currentHash) {
     return { success: false, error: 'Current password is incorrect' };
   }
-  
+
   const stmt = db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`);
   stmt.run(newHash, userId);
-  
+
   return { success: true };
+}
+
+// ============================================================================
+// PAYMENT FUNCTIONS
+// ============================================================================
+
+interface PaymentOrder {
+  orderId: string;
+  userId: string;
+  productType: string;
+  amount: number;
+  proCode: string;
+  status: string;
+}
+
+/**
+ * Create a new payment order
+ */
+export function createPaymentOrder(order: PaymentOrder) {
+  const stmt = db.prepare(`
+    INSERT INTO payment_orders (order_id, user_id, product_type, amount, pro_code, status)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  stmt.run(
+    order.orderId,
+    order.userId,
+    order.productType,
+    order.amount,
+    order.proCode,
+    order.status
+  );
+
+  return order;
+}
+
+/**
+ * Verify a payment order with transaction ID
+ */
+export function verifyPaymentOrder(orderId: string, transactionId: string) {
+  // Get the order
+  const order = db.prepare(`
+    SELECT * FROM payment_orders WHERE order_id = ?
+  `).get(orderId) as any;
+
+  if (!order) {
+    return { success: false, error: "Order not found" };
+  }
+
+  if (order.status === "verified") {
+    return { success: true, proCode: order.pro_code, productType: order.product_type };
+  }
+
+  // Update order with transaction ID and mark as verified
+  const stmt = db.prepare(`
+    UPDATE payment_orders 
+    SET transaction_id = ?, status = 'verified', verified_at = CURRENT_TIMESTAMP
+    WHERE order_id = ?
+  `);
+
+  stmt.run(transactionId, orderId);
+
+  return {
+    success: true,
+    proCode: order.pro_code,
+    productType: order.product_type
+  };
+}
+
+/**
+ * Get payment order by order ID
+ */
+export function getPaymentOrderByCode(orderId: string) {
+  const stmt = db.prepare(`SELECT * FROM payment_orders WHERE order_id = ?`);
+  const order = stmt.get(orderId) as any;
+
+  if (!order) return null;
+
+  return {
+    orderId: order.order_id,
+    userId: order.user_id,
+    productType: order.product_type,
+    amount: order.amount,
+    proCode: order.pro_code,
+    status: order.status,
+    transactionId: order.transaction_id,
+    createdAt: order.created_at
+  };
+}
+
+/**
+ * Activate Pro features with a code
+ */
+export function activateProCode(proCode: string, userId: string) {
+  // Find the order with this pro code
+  const order = db.prepare(`
+    SELECT * FROM payment_orders WHERE pro_code = ? AND status = 'verified'
+  `).get(proCode) as any;
+
+  if (!order) {
+    return { success: false, error: "Invalid or unused Pro code" };
+  }
+
+  // Check if already activated
+  const existing = db.prepare(`
+    SELECT * FROM pro_activations WHERE pro_code = ?
+  `).get(proCode);
+
+  if (existing) {
+    return { success: false, error: "Code already used" };
+  }
+
+  // Calculate expiry (24h for download, null for permanent)
+  const expiresAt = order.product_type === 'download'
+    ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    : null;
+
+  // Create activation record
+  const stmt = db.prepare(`
+    INSERT INTO pro_activations (user_id, pro_code, product_type, expires_at)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  stmt.run(userId, proCode, order.product_type, expiresAt);
+
+  return {
+    success: true,
+    productType: order.product_type,
+    expiresAt
+  };
+}
+
+/**
+ * Get Pro status for a user
+ */
+export function getProCode(userId: string) {
+  // Check for any active Pro subscription
+  const stmt = db.prepare(`
+    SELECT * FROM pro_activations 
+    WHERE user_id = ? 
+    AND (expires_at IS NULL OR expires_at > datetime('now'))
+    ORDER BY activated_at DESC
+    LIMIT 1
+  `);
+
+  const activation = stmt.get(userId) as any;
+
+  if (!activation) {
+    return null;
+  }
+
+  return {
+    isActive: true,
+    productType: activation.product_type,
+    expiresAt: activation.expires_at
+  };
 }
 
 // Initialize database on module load

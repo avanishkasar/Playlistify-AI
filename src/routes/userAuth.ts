@@ -4,7 +4,7 @@
  */
 
 import express, { Request, Response } from "express";
-import { createUser, authenticateUser, getUserById, getUserPlaylists, getUserStats, User, updateProfilePicture, updateDisplayName, updateUsername, updatePassword } from "./database.js";
+import { createUser, authenticateUser, getUserById, getUserPlaylists, getUserStats, User, updateProfilePicture, updateDisplayName, updateUsername, updatePassword } from "../database.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -25,9 +25,9 @@ function generateSessionToken(): string {
 function createSession(userId: number, username: string): string {
   const token = generateSessionToken();
   const expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
-  
+
   sessions.set(token, { userId, username, expiresAt });
-  
+
   return token;
 }
 
@@ -36,14 +36,14 @@ function createSession(userId: number, username: string): string {
  */
 function validateSession(token: string) {
   const session = sessions.get(token);
-  
+
   if (!session) return null;
-  
+
   if (Date.now() > session.expiresAt) {
     sessions.delete(token);
     return null;
   }
-  
+
   return session;
 }
 
@@ -52,7 +52,7 @@ function validateSession(token: string) {
  */
 router.post('/register', (req: Request, res: Response): void => {
   const { username, email, password } = req.body;
-  
+
   // Validation
   if (!username || !email || !password) {
     res.status(400).json({
@@ -61,7 +61,7 @@ router.post('/register', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   if (username.length < 3) {
     res.status(400).json({
       error: 'invalid_username',
@@ -69,7 +69,7 @@ router.post('/register', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   if (password.length < 6) {
     res.status(400).json({
       error: 'weak_password',
@@ -77,11 +77,11 @@ router.post('/register', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   try {
     const user = createUser(username, email, password);
     const token = createSession(user.id as number, user.username);
-    
+
     res.json({
       success: true,
       user: {
@@ -105,7 +105,7 @@ router.post('/register', (req: Request, res: Response): void => {
  */
 router.post('/login', (req: Request, res: Response): void => {
   const { username, password } = req.body;
-  
+
   if (!username || !password) {
     res.status(400).json({
       error: 'missing_credentials',
@@ -113,10 +113,10 @@ router.post('/login', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   try {
     const user = authenticateUser(username, password);
-    
+
     if (!user) {
       res.status(401).json({
         error: 'invalid_credentials',
@@ -124,9 +124,9 @@ router.post('/login', (req: Request, res: Response): void => {
       });
       return;
     }
-    
+
     const token = createSession(user.id, user.username);
-    
+
     res.json({
       success: true,
       user: {
@@ -150,11 +150,11 @@ router.post('/login', (req: Request, res: Response): void => {
  */
 router.post('/logout', (req: Request, res: Response) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (token) {
     sessions.delete(token);
   }
-  
+
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
@@ -163,7 +163,7 @@ router.post('/logout', (req: Request, res: Response) => {
  */
 router.get('/me', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (!token) {
     res.status(401).json({
       error: 'unauthorized',
@@ -171,9 +171,9 @@ router.get('/me', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   const session = validateSession(token);
-  
+
   if (!session) {
     res.status(401).json({
       error: 'invalid_session',
@@ -181,9 +181,9 @@ router.get('/me', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   const user = getUserById(session.userId);
-  
+
   if (!user) {
     res.status(404).json({
       error: 'user_not_found',
@@ -191,7 +191,7 @@ router.get('/me', (req: Request, res: Response): void => {
     });
     return;
   }
-  
+
   res.json({
     id: user.id,
     username: user.username,
@@ -207,21 +207,21 @@ router.get('/me', (req: Request, res: Response): void => {
  */
 router.get('/playlists', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (!token) {
     res.status(401).json({ error: 'unauthorized' });
     return;
   }
-  
+
   const session = validateSession(token);
-  
+
   if (!session) {
     res.status(401).json({ error: 'invalid_session' });
     return;
   }
-  
+
   const playlists = getUserPlaylists(session.userId);
-  
+
   res.json({ playlists });
 });
 
@@ -230,21 +230,21 @@ router.get('/playlists', (req: Request, res: Response): void => {
  */
 router.get('/stats', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (!token) {
     res.status(401).json({ error: 'unauthorized' });
     return;
   }
-  
+
   const session = validateSession(token);
-  
+
   if (!session) {
     res.status(401).json({ error: 'invalid_session' });
     return;
   }
-  
+
   const stats = getUserStats(session.userId);
-  
+
   res.json({ stats });
 });
 
@@ -254,23 +254,23 @@ router.get('/stats', (req: Request, res: Response): void => {
 router.post('/profile/picture', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   const { profilePicture } = req.body;
-  
+
   if (!token) {
     res.status(401).json({ error: 'unauthorized', message: 'No token provided' });
     return;
   }
-  
+
   const session = validateSession(token);
   if (!session) {
     res.status(401).json({ error: 'invalid_session', message: 'Session expired' });
     return;
   }
-  
+
   if (!profilePicture) {
     res.status(400).json({ error: 'missing_field', message: 'Profile picture URL is required' });
     return;
   }
-  
+
   try {
     updateProfilePicture(session.userId, profilePicture);
     res.json({ success: true, message: 'Profile picture updated' });
@@ -285,23 +285,23 @@ router.post('/profile/picture', (req: Request, res: Response): void => {
 router.post('/profile/displayname', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   const { displayName } = req.body;
-  
+
   if (!token) {
     res.status(401).json({ error: 'unauthorized', message: 'No token provided' });
     return;
   }
-  
+
   const session = validateSession(token);
   if (!session) {
     res.status(401).json({ error: 'invalid_session', message: 'Session expired' });
     return;
   }
-  
+
   if (!displayName || displayName.length < 2) {
     res.status(400).json({ error: 'invalid_name', message: 'Display name must be at least 2 characters' });
     return;
   }
-  
+
   try {
     updateDisplayName(session.userId, displayName);
     res.json({ success: true, message: 'Display name updated' });
@@ -316,23 +316,23 @@ router.post('/profile/displayname', (req: Request, res: Response): void => {
 router.post('/profile/username', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   const { username } = req.body;
-  
+
   if (!token) {
     res.status(401).json({ error: 'unauthorized', message: 'No token provided' });
     return;
   }
-  
+
   const session = validateSession(token);
   if (!session) {
     res.status(401).json({ error: 'invalid_session', message: 'Session expired' });
     return;
   }
-  
+
   if (!username || username.length < 3) {
     res.status(400).json({ error: 'invalid_username', message: 'Username must be at least 3 characters' });
     return;
   }
-  
+
   const result = updateUsername(session.userId, username);
   if (result.success) {
     // Update session with new username
@@ -352,28 +352,28 @@ router.post('/profile/username', (req: Request, res: Response): void => {
 router.post('/profile/password', (req: Request, res: Response): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   const { currentPassword, newPassword } = req.body;
-  
+
   if (!token) {
     res.status(401).json({ error: 'unauthorized', message: 'No token provided' });
     return;
   }
-  
+
   const session = validateSession(token);
   if (!session) {
     res.status(401).json({ error: 'invalid_session', message: 'Session expired' });
     return;
   }
-  
+
   if (!currentPassword || !newPassword) {
     res.status(400).json({ error: 'missing_fields', message: 'Current and new password are required' });
     return;
   }
-  
+
   if (newPassword.length < 6) {
     res.status(400).json({ error: 'weak_password', message: 'New password must be at least 6 characters' });
     return;
   }
-  
+
   const result = updatePassword(session.userId, currentPassword, newPassword);
   if (result.success) {
     res.json({ success: true, message: 'Password updated successfully' });
