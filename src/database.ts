@@ -134,16 +134,16 @@ function seedInitialUsers() {
 
   console.log('🌱 Seeding initial users...');
 
-  // 11 users for leaderboard - Top 5 with double digits, rest with 2-3 playlists
+  // 11 users for leaderboard - avanish champion, then decreasing realistically
   const users = [
     { username: 'avanish', email: 'avanish@playlistify.ai', password: 'Avanish@123', displayName: 'Avanish Kasar', playlists: 47 },
-    { username: 'priya_sharma', email: 'priya.sharma@gmail.com', password: 'Priya@2024', displayName: 'Priya Sharma', playlists: 38 },
-    { username: 'rahul_dev', email: 'rahul.developer@outlook.com', password: 'RahulDev#99', displayName: 'Rahul Kumar', playlists: 29 },
-    { username: 'sneha_music', email: 'sneha.melodies@yahoo.com', password: 'Sneha!Music1', displayName: 'Sneha Patel', playlists: 21 },
-    { username: 'arjun_beats', email: 'arjun.beats@gmail.com', password: 'ArjunB@567', displayName: 'Arjun Reddy', playlists: 15 },
-    { username: 'ananya_vibes', email: 'ananya.vibes@hotmail.com', password: 'Ananya#Vibes', displayName: 'Ananya Singh', playlists: 3 },
-    { username: 'vikram_tunes', email: 'vikram.tunes@gmail.com', password: 'VikramT@321', displayName: 'Vikram Mehra', playlists: 3 },
-    { username: 'kavya_rhythms', email: 'kavya.rhythms@outlook.com', password: 'Kavya!2024', displayName: 'Kavya Nair', playlists: 2 },
+    { username: 'priya_sharma', email: 'priya.sharma@gmail.com', password: 'Priya@2024', displayName: 'Priya Sharma', playlists: 20 },
+    { username: 'rahul_dev', email: 'rahul.developer@outlook.com', password: 'RahulDev#99', displayName: 'Rahul Kumar', playlists: 14 },
+    { username: 'sneha_music', email: 'sneha.melodies@yahoo.com', password: 'Sneha!Music1', displayName: 'Sneha Patel', playlists: 7 },
+    { username: 'arjun_beats', email: 'arjun.beats@gmail.com', password: 'ArjunB@567', displayName: 'Arjun Reddy', playlists: 6 },
+    { username: 'ananya_vibes', email: 'ananya.vibes@hotmail.com', password: 'Ananya#Vibes', displayName: 'Ananya Singh', playlists: 5 },
+    { username: 'vikram_tunes', email: 'vikram.tunes@gmail.com', password: 'VikramT@321', displayName: 'Vikram Mehra', playlists: 4 },
+    { username: 'kavya_rhythms', email: 'kavya.rhythms@outlook.com', password: 'Kavya!2024', displayName: 'Kavya Nair', playlists: 3 },
     { username: 'rohan_sounds', email: 'rohan.sounds@gmail.com', password: 'RohanS#789', displayName: 'Rohan Gupta', playlists: 2 },
     { username: 'meera_playlist', email: 'meera.music@yahoo.com', password: 'Meera@Play1', displayName: 'Meera Joshi', playlists: 2 },
     { username: 'aditya_mix', email: 'aditya.mix@gmail.com', password: 'AdityaM!234', displayName: 'Aditya Verma', playlists: 2 }

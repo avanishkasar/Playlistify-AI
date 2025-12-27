@@ -176,9 +176,9 @@ body {
 /* ===== CURSOR GLOW EFFECT ===== */
 .cursor-glow {
   position: fixed;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(29, 185, 84, 0.12) 0%, rgba(29, 185, 84, 0.04) 40%, transparent 70%);
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.06) 0%, rgba(29, 185, 84, 0.02) 40%, transparent 60%);
   border-radius: 50%;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -186,7 +186,7 @@ body {
   opacity: 0;
   transition: opacity 0.4s ease, transform 0.15s ease;
   mix-blend-mode: screen;
-  filter: blur(2px);
+  filter: blur(1px);
 }
 
 /* ===== ANIMATED GRADIENT BACKGROUND ===== */
