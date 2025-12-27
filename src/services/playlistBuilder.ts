@@ -1,6 +1,6 @@
 import spotifyHandler from './spotifyHandler.js';
-import { parsePlaylistIntent } from './nlpHelper.js';
-import { SpotifyTrack } from './types.js';
+import { parsePlaylistIntent } from '../utils/nlpHelper.js';
+import { SpotifyTrack } from '../types.js';
 
 /**
  * Advanced playlist builder with smart track selection
@@ -176,7 +176,7 @@ export async function mergePlaylists(
 
     // Note: This would require additional Spotify API calls to fetch playlist tracks
     // For now, this is a placeholder for future implementation
-    
+
     return {
       success: false,
       error: 'Merge functionality not yet implemented - requires playlist fetch API',

@@ -12,16 +12,16 @@
 
 import { agentMemory, TimeOfDay, EnergyLevel, AudioCharacteristics, PlaylistMemoryEntry } from './agentMemory.js';
 import { parseEnhancedIntent, generateExplanation, suggestModifications, EnhancedPlaylistIntent } from './intentEngine.js';
-import { SpotifyTrack, ProactiveSuggestion, AgenticPlaylist, PlaylistEvolutionRequest } from './types.js';
+import { SpotifyTrack, ProactiveSuggestion, AgenticPlaylist, PlaylistEvolutionRequest } from '../types.js';
 import * as spotifyHandler from './spotifyHandler.js';
-import { 
-  generateCreativePlaylistName, 
-  generateCoverImagePrompt, 
+import {
+  generateCreativePlaylistName,
+  generateCoverImagePrompt,
   parseRefinementRequest,
   generatePersonalizedSuggestion,
   generateMemorySummary,
   generateSmartSearchQueries as aiGenerateSearchQueries,
-  parseComplexPrompt 
+  parseComplexPrompt
 } from './aiService.js';
 
 // ============================================================================
@@ -35,14 +35,14 @@ import {
 export function getProactiveSuggestion(userId: string): ProactiveSuggestion | null {
   try {
     const { shouldSuggest, reason, suggestedPrompt } = agentMemory.shouldSuggestProactively(userId);
-    
+
     if (!shouldSuggest || !suggestedPrompt) {
       return null;
     }
-    
+
     const context = agentMemory.getPersonalizedContext(userId);
     const now = Date.now();
-    
+
     // Build a smart suggestion based on patterns
     const suggestion: ProactiveSuggestion = {
       id: `sug_${now}_${Math.random().toString(36).substr(2, 9)}`,
@@ -55,10 +55,10 @@ export function getProactiveSuggestion(userId: string): ProactiveSuggestion | nu
       createdAt: now,
       expiresAt: now + (2 * 60 * 60 * 1000), // 2 hours
     };
-    
+
     console.log('[AgenticEngine] Generated proactive suggestion:', suggestion.title);
     return suggestion;
-    
+
   } catch (err) {
     console.error('[AgenticEngine] Failed to generate proactive suggestion:', err);
     return null;
@@ -77,7 +77,7 @@ function getTimeDependentTitle(timeOfDay: TimeOfDay): string {
     'night': ['Night mode activated', 'Ready for the night?'],
     'late-night': ['Late night companion', 'Burning the midnight oil?'],
   };
-  
+
   const options = titles[timeOfDay] || ['Your music is ready'];
   return options[Math.floor(Math.random() * options.length)];
 }
@@ -102,36 +102,36 @@ export async function generateAgenticPlaylist(
 ): Promise<AgenticPlaylist | { error: string }> {
   try {
     console.log('[AgenticEngine] Generating agentic playlist for:', rawPrompt);
-    
+
     const targetCount = options?.targetCount || 25;
-    
+
     // Step 1: Get personalized context from memory
     const userContext = agentMemory.getPersonalizedContext(userId);
-    
+
     // Step 2: Use AI to deeply understand the prompt and generate smart search queries
     console.log('[AgenticEngine] Using AI to understand prompt...');
     const aiSearchResult = await aiGenerateSearchQueries(rawPrompt, targetCount);
     console.log('[AgenticEngine] AI understanding:', aiSearchResult.understanding);
     console.log('[AgenticEngine] AI generated queries:', aiSearchResult.queries);
-    
+
     // Step 3: Also parse intent for local understanding (fallback + naming)
     const intent = parseEnhancedIntent(rawPrompt, {
       timeOfDay: userContext.timeOfDay,
       previousMood: userContext.recentMoodTrend,
       preferredGenres: userContext.suggestedGenres,
     });
-    
+
     // Step 4: Get tracks using AI-generated search queries
     let tracks: SpotifyTrack[] = [];
     const tracksPerQuery = Math.ceil(targetCount / aiSearchResult.queries.length) + 10;
-    
+
     for (const query of aiSearchResult.queries) {
       const searchResult = await spotifyHandler.searchTracks(query, tracksPerQuery);
       if (searchResult.status === 'success' && searchResult.data?.tracks) {
         tracks.push(...searchResult.data.tracks);
       }
     }
-    
+
     // Fallback if AI queries returned nothing
     if (tracks.length < 5) {
       console.log('[AgenticEngine] AI queries insufficient, trying local queries...');
@@ -143,7 +143,7 @@ export async function generateAgenticPlaylist(
         }
       }
     }
-    
+
     // Final fallback: direct prompt search
     if (tracks.length === 0) {
       const fallbackResult = await spotifyHandler.searchTracks(rawPrompt, targetCount);
@@ -151,32 +151,32 @@ export async function generateAgenticPlaylist(
         tracks = fallbackResult.data.tracks;
       }
     }
-    
+
     if (tracks.length === 0) {
       return { error: 'No tracks found for your request. Try a different description.' };
     }
-    
+
     // Step 5: Deduplicate and apply diversity rules
     tracks = deduplicateTracks(tracks);
-    
+
     // Apply AI-suggested max per artist (default 2)
     const maxPerArtist = aiSearchResult.filters.maxPerArtist || 2;
     tracks = applySmartDiversity(tracks, maxPerArtist);
-    
+
     // Step 6: Shuffle for variety and limit to target
     tracks = shuffleArray(tracks);
     tracks = tracks.slice(0, targetCount);
-    
+
     // Step 7: Generate explanation (combine AI understanding + local)
     const explanation = aiSearchResult.understanding || generateExplanation(intent, {
       timeOfDay: userContext.timeOfDay,
       preferenceNote: userContext.explanation,
     });
-    
+
     // Step 8: Create the Spotify playlist (with AI-generated name)
     const playlistName = await generateSmartPlaylistName(rawPrompt, intent);
     const trackUris = tracks.map(t => t.uri);
-    
+
     const createResult = await spotifyHandler.createPlaylist(
       undefined,
       playlistName,
@@ -184,11 +184,11 @@ export async function generateAgenticPlaylist(
       trackUris,
       true
     );
-    
+
     if (createResult.status !== 'success' || !createResult.data?.playlist) {
       return { error: 'Failed to create Spotify playlist' };
     }
-    
+
     // Step 9: Record in agent memory
     const memoryId = agentMemory.recordPlaylistGeneration(userId, {
       intent: {
@@ -202,16 +202,16 @@ export async function generateAgenticPlaylist(
       trackCount: tracks.length,
       characteristics: inferAudioCharacteristics(intent, tracks),
     });
-    
+
     // Step 10: Generate modification suggestions
     const modifications = suggestModifications(intent);
-    
+
     console.log('[AgenticEngine] Playlist created successfully:', {
       playlistId: createResult.data.playlist.id,
       memoryId,
       trackCount: tracks.length,
     });
-    
+
     return {
       playlist: createResult.data.playlist,
       tracks,
@@ -221,7 +221,7 @@ export async function generateAgenticPlaylist(
       createdAt: Date.now(),
       canEvolve: true,
     };
-    
+
   } catch (err: any) {
     console.error('[AgenticEngine] Playlist generation failed:', err);
     return { error: err.message || 'Unknown error during playlist generation' };
@@ -244,13 +244,13 @@ function extractSpecificTerms(rawPrompt: string): {
     artistHints: [],
     specificTerms: [],
   };
-  
+
   // Extract year (e.g., "2019", "90s", "2010s")
   const yearMatch = lower.match(/\b(19|20)\d{2}\b/);
   if (yearMatch) {
     result.year = yearMatch[0];
   }
-  
+
   // Extract decade (e.g., "90s", "80s", "2010s")
   const decadeMatch = lower.match(/\b(\d{2})s\b|\b(20\d{2})s\b/);
   if (decadeMatch) {
@@ -262,7 +262,7 @@ function extractSpecificTerms(rawPrompt: string): {
       result.yearRange = { start: parseInt(decade), end: parseInt(decade) + 9 };
     }
   }
-  
+
   // Extract language/region
   const languages: Record<string, string> = {
     'hindi': 'bollywood hindi',
@@ -286,14 +286,14 @@ function extractSpecificTerms(rawPrompt: string): {
     'desi': 'bollywood hindi punjabi',
     'indian': 'bollywood hindi',
   };
-  
+
   for (const [key, value] of Object.entries(languages)) {
     if (lower.includes(key)) {
       result.language = value;
       break;
     }
   }
-  
+
   // Extract style/type
   const styles = ['mashup', 'remix', 'cover', 'acoustic', 'live', 'unplugged', 'lofi', 'lo-fi', 'slowed', 'reverb', 'bass boosted', 'extended', 'mix', 'medley'];
   for (const style of styles) {
@@ -302,21 +302,21 @@ function extractSpecificTerms(rawPrompt: string): {
       break;
     }
   }
-  
+
   // Extract specific terms that should be in the search
   const importantTerms = rawPrompt.match(/["']([^"']+)["']/g);
   if (importantTerms) {
     result.specificTerms = importantTerms.map(t => t.replace(/["']/g, ''));
   }
-  
+
   // Extract words that look like artist names (capitalized words)
   const capitalizedWords = rawPrompt.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g);
   if (capitalizedWords) {
-    result.artistHints = capitalizedWords.filter(w => 
+    result.artistHints = capitalizedWords.filter(w =>
       !['I', 'The', 'A', 'An', 'For', 'With', 'And', 'Or', 'But', 'Music', 'Songs', 'Playlist'].includes(w)
     );
   }
-  
+
   return result;
 }
 
@@ -334,10 +334,10 @@ function buildSmartSearchQueries(
   const genres = intent.suggestedSeeds?.genres || [];
   const mood = intent.mood || intent.emotionalState?.primary || '';
   const activity = intent.activity || '';
-  
+
   // Extract specific terms from the raw prompt for precision
   const extracted = rawPrompt ? extractSpecificTerms(rawPrompt) : { artistHints: [], specificTerms: [] };
-  
+
   // PRIORITY 1: Use extracted specific terms first (most accurate)
   if (extracted.language && extracted.year) {
     // e.g., "hindi 2019" -> "bollywood hindi 2019"
@@ -352,7 +352,7 @@ function buildSmartSearchQueries(
     queries.push(`best ${extracted.language} songs`);
     queries.push(`${extracted.language} popular`);
   }
-  
+
   // Add style-specific queries
   if (extracted.style) {
     if (extracted.language) {
@@ -360,7 +360,7 @@ function buildSmartSearchQueries(
     }
     queries.push(`${extracted.style} songs ${extracted.year || ''}`.trim());
   }
-  
+
   // Add year-specific queries
   if (extracted.year && !extracted.language) {
     queries.push(`top songs ${extracted.year}`);
@@ -369,22 +369,22 @@ function buildSmartSearchQueries(
       queries.push(`${genres[0]} ${extracted.year}`);
     }
   }
-  
+
   // Add artist hints
   for (const artist of extracted.artistHints.slice(0, 2)) {
     queries.push(`${artist} songs`);
   }
-  
+
   // Add specific quoted terms
   for (const term of extracted.specificTerms.slice(0, 2)) {
     queries.push(term);
   }
-  
+
   // PRIORITY 2: Genre + mood combinations
   if (mood && genres.length > 0 && queries.length < 3) {
     queries.push(`${mood} ${genres[0]} music`);
   }
-  
+
   // Add genre-specific queries if we don't have enough
   if (queries.length < 4) {
     for (const genre of genres.slice(0, 2)) {
@@ -397,27 +397,27 @@ function buildSmartSearchQueries(
       }
     }
   }
-  
+
   // Add activity-based query
   if (activity && queries.length < 5) {
     queries.push(`${activity} music playlist`);
   }
-  
+
   // Add era preference if specified
   if (options?.eraPreference && queries.length < 6) {
     queries.push(`${options.eraPreference} hits`);
   }
-  
+
   // Ensure we have at least one query
   if (queries.length === 0) {
     queries.push(rawPrompt || 'popular music hits');
     queries.push('top songs playlist');
   }
-  
+
   // Deduplicate and limit
   const uniqueQueries = [...new Set(queries.filter(q => q.trim().length > 0))];
   console.log('[AgenticEngine] Built search queries:', uniqueQueries.slice(0, 6));
-  
+
   return uniqueQueries.slice(0, 6);
 }
 
@@ -427,14 +427,14 @@ function buildSmartSearchQueries(
 function deduplicateTracks(tracks: SpotifyTrack[]): SpotifyTrack[] {
   const seen = new Set<string>();
   const result: SpotifyTrack[] = [];
-  
+
   for (const track of tracks) {
     if (!seen.has(track.id)) {
       seen.add(track.id);
       result.push(track);
     }
   }
-  
+
   return result;
 }
 
@@ -465,19 +465,19 @@ function shuffleArray<T>(array: T[]): T[] {
 function applySmartDiversity(tracks: SpotifyTrack[], maxPerArtist: number = 2): SpotifyTrack[] {
   const artistCounts = new Map<string, number>();
   const result: SpotifyTrack[] = [];
-  
+
   for (const track of tracks) {
     const artistId = track.artists[0]?.id;
     if (!artistId) continue;
-    
+
     const count = artistCounts.get(artistId) || 0;
-    
+
     if (count < maxPerArtist) {
       result.push(track);
       artistCounts.set(artistId, count + 1);
     }
   }
-  
+
   return result;
 }
 
@@ -490,7 +490,7 @@ async function generateSmartPlaylistName(rawPrompt: string, intent: EnhancedPlay
   const activity = intent.activity || '';
   const genres = intent.suggestedSeeds?.genres || [];
   const timeContext = intent.context?.timeContext;
-  
+
   // Try AI-generated name first
   try {
     const aiName = await generateCreativePlaylistName(
@@ -507,7 +507,7 @@ async function generateSmartPlaylistName(rawPrompt: string, intent: EnhancedPlay
   } catch (err) {
     console.log('[AgenticEngine] AI name generation failed, using fallback');
   }
-  
+
   // Fallback: Local name generation
   // Emoji mappings for different moods/activities
   const moodEmojis: Record<string, string> = {
@@ -517,21 +517,21 @@ async function generateSmartPlaylistName(rawPrompt: string, intent: EnhancedPlay
     'pumped': '🔥', 'melancholic': '🌊', 'confident': '👑', 'peaceful': '🕊️',
     'dreamy': '💫', 'intense': '⚔️', 'cozy': '🏠', 'nostalgic': '📻'
   };
-  
+
   const energy = intent.audioParams?.targetEnergy || 'medium';
-  
+
   // Get emoji
   const emoji = moodEmojis[mood.toLowerCase()] || moodEmojis[activity.toLowerCase()] || '🎵';
-  
+
   // Generate creative name based on context
   const timeLabels: Record<string, string> = {
     'morning': 'Morning', 'day': 'Afternoon', 'evening': 'Evening',
     'night': 'Night', 'late-night': 'Late Night'
   };
-  
+
   // Build smart name
   let name = '';
-  
+
   // If we have both mood and activity, combine them
   if (mood && activity) {
     const moodCapitalized = mood.charAt(0).toUpperCase() + mood.slice(1);
@@ -553,7 +553,7 @@ async function generateSmartPlaylistName(rawPrompt: string, intent: EnhancedPlay
   else if (mood) {
     const moodCapitalized = mood.charAt(0).toUpperCase() + mood.slice(1);
     const energyLabels: Record<string, string> = {
-      'very-low': 'Gentle', 'low': 'Soft', 'medium': '', 
+      'very-low': 'Gentle', 'low': 'Soft', 'medium': '',
       'high': 'Upbeat', 'very-high': 'High Energy'
     };
     const energyLabel = energyLabels[energy] || '';
@@ -580,10 +580,10 @@ async function generateSmartPlaylistName(rawPrompt: string, intent: EnhancedPlay
       .join(' ');
     name = cleanPrompt || 'AI Curated Mix';
   }
-  
+
   // Add "by Playlistify AI" suffix occasionally for branding
   const addBranding = Math.random() > 0.7;
-  
+
   return addBranding ? `${emoji} ${name} • AI` : `${emoji} ${name}`;
 }
 
@@ -616,40 +616,40 @@ export async function evolvePlaylist(
 ): Promise<{ success: boolean; message: string; newTracks?: SpotifyTrack[] }> {
   try {
     console.log('[AgenticEngine] Evolving playlist:', request.playlistId);
-    
+
     // Get evolution suggestions from memory
     const suggestions = agentMemory.getEvolutionSuggestions(userId, request.memoryId);
-    
+
     if (!suggestions.shouldEvolve && request.evolutionType !== 'refresh') {
       return { success: true, message: 'Playlist is already optimized for your preferences' };
     }
-    
+
     // Get current context
     const userContext = agentMemory.getPersonalizedContext(userId);
-    
+
     // Build new recommendations based on evolved preferences
-    const seedGenres = userContext.suggestedGenres.length > 0 
-      ? userContext.suggestedGenres 
+    const seedGenres = userContext.suggestedGenres.length > 0
+      ? userContext.suggestedGenres
       : ['pop', 'indie'];
-    
+
     const recommendResult = await spotifyHandler.getRecommendations(
       undefined,
       seedGenres.slice(0, 5),
       undefined,
       10 // Get fewer tracks for evolution
     );
-    
+
     if (recommendResult.status !== 'success' || !recommendResult.data?.tracks) {
       return { success: false, message: 'Could not fetch new track recommendations' };
     }
-    
+
     // For now, return the new tracks (actual playlist update would require more Spotify API calls)
     return {
       success: true,
       message: `Found ${recommendResult.data.tracks.length} new tracks based on your evolved preferences`,
       newTracks: recommendResult.data.tracks,
     };
-    
+
   } catch (err: any) {
     console.error('[AgenticEngine] Playlist evolution failed:', err);
     return { success: false, message: err.message || 'Evolution failed' };
@@ -667,10 +667,10 @@ export function getWeeklyRefreshSuggestions(userId: string): {
   if (!state) {
     return { shouldRefresh: false, playlistsToRefresh: [] };
   }
-  
+
   const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
   const playlistsToRefresh: Array<{ id: string; name: string; reason: string }> = [];
-  
+
   // Find playlists older than a week that were liked
   for (const playlist of state.recentPlaylists) {
     if (playlist.timestamp < oneWeekAgo) {
@@ -682,10 +682,10 @@ export function getWeeklyRefreshSuggestions(userId: string): {
         });
       }
     }
-    
+
     if (playlistsToRefresh.length >= 3) break;
   }
-  
+
   return {
     shouldRefresh: playlistsToRefresh.length > 0,
     playlistsToRefresh,
@@ -707,12 +707,12 @@ export function processTrackFeedback(
 ): { success: boolean; message: string } {
   try {
     agentMemory.recordTrackFeedback(userId, memoryId, trackUri, action);
-    
+
     const messages = {
       like: "Got it! I'll remember you liked this kind of track.",
       skip: "Noted! I'll adjust future recommendations.",
     };
-    
+
     return { success: true, message: messages[action] };
   } catch (err) {
     return { success: false, message: 'Failed to record feedback' };
@@ -729,25 +729,25 @@ export function processPlaylistRating(
 ): { success: boolean; message: string; suggestion?: string } {
   try {
     agentMemory.recordPlaylistRating(userId, memoryId, rating);
-    
+
     const responses: Record<string, { message: string; suggestion?: string }> = {
-      loved: { 
+      loved: {
         message: "Amazing! I'll use this as a reference for future playlists.",
         suggestion: "Want me to create a similar one for a different time of day?"
       },
-      liked: { 
+      liked: {
         message: "Great! I'm learning your taste.",
       },
-      neutral: { 
+      neutral: {
         message: "Thanks for the feedback. Any specific adjustments you'd like?",
         suggestion: "Try 'more energy' or 'more chill' for better results"
       },
-      disliked: { 
+      disliked: {
         message: "Sorry about that! I'll adjust future recommendations.",
         suggestion: "Try being more specific about the mood you want"
       },
     };
-    
+
     return { success: true, ...responses[rating] };
   } catch (err) {
     return { success: false, message: 'Failed to record rating' };
@@ -770,7 +770,7 @@ export function getTasteFingerprint(userId: string): {
 } {
   const stats = agentMemory.getUserStats(userId);
   const context = agentMemory.getPersonalizedContext(userId);
-  
+
   // Determine listening style
   let listeningStyle = 'Balanced';
   if (context.suggestedEnergy === 'very-high' || context.suggestedEnergy === 'high') {
@@ -778,7 +778,7 @@ export function getTasteFingerprint(userId: string): {
   } else if (context.suggestedEnergy === 'low' || context.suggestedEnergy === 'very-low') {
     listeningStyle = 'Calm & Focused';
   }
-  
+
   // Generate personality note
   let personalityNote = '';
   if (stats.totalPlaylistsGenerated > 10) {
@@ -802,7 +802,7 @@ export function getTasteFingerprint(userId: string): {
   } else {
     personalityNote = "Let's discover your musical personality together.";
   }
-  
+
   return {
     topGenres: context.suggestedGenres.slice(0, 5),
     topMoods: context.suggestedMoods.slice(0, 3),
@@ -844,52 +844,52 @@ export async function refinePlaylistWithChat(
   request: RefineRequest
 ): Promise<RefineResult> {
   const { originalPrompt, refinement, currentTrackUris, playlistId } = request;
-  
+
   console.log('[AgenticEngine] Refining playlist with AI:', refinement);
-  
+
   // Use AI to understand the refinement request
   const parsedRequest = await parseRefinementRequest(
     originalPrompt,
     refinement,
     [] // We could pass current track genres here
   );
-  
+
   console.log('[AgenticEngine] AI parsed request:', parsedRequest);
-  
+
   try {
     if (parsedRequest.action === 'add' || parsedRequest.action === 'adjust') {
       // Search for new tracks based on AI-parsed query
       const searchResult = await spotifyHandler.searchTracks(parsedRequest.searchQuery, 5);
-      
+
       if (searchResult.status === 'success' && searchResult.data?.tracks) {
         const newTracks = searchResult.data.tracks.filter(
           (t: SpotifyTrack) => !currentTrackUris.includes(t.uri)
         );
-        
+
         if (newTracks.length > 0) {
           // Add tracks to the Spotify playlist
           const trackUris = newTracks.map((t: SpotifyTrack) => t.uri);
           await spotifyHandler.addTracksToPlaylist(playlistId, trackUris);
-          
+
           return {
             message: `${parsedRequest.explanation} Added ${newTracks.length} tracks! 🎵`,
             tracks: [...newTracks],
             action: 'added',
           };
         }
-        
+
         return {
           message: `${parsedRequest.explanation} But all matching tracks are already in your playlist!`,
           action: 'no-change',
         };
       }
-      
+
       return {
         message: `Couldn't find tracks matching "${parsedRequest.criteria}". Try being more specific!`,
         action: 'no-change',
       };
     }
-    
+
     if (parsedRequest.action === 'remove') {
       // For removal, explain what would happen
       return {
@@ -897,20 +897,20 @@ export async function refinePlaylistWithChat(
         action: 'no-change',
       };
     }
-    
+
     if (parsedRequest.action === 'replace') {
       // Search for replacement tracks
       const searchResult = await spotifyHandler.searchTracks(parsedRequest.searchQuery, 5);
-      
+
       if (searchResult.status === 'success' && searchResult.data?.tracks) {
         const newTracks = searchResult.data.tracks.filter(
           (t: SpotifyTrack) => !currentTrackUris.includes(t.uri)
         );
-        
+
         if (newTracks.length > 0) {
           const trackUris = newTracks.map((t: SpotifyTrack) => t.uri);
           await spotifyHandler.addTracksToPlaylist(playlistId, trackUris);
-          
+
           return {
             message: `${parsedRequest.explanation} Added ${newTracks.length} new tracks! 🔄`,
             tracks: [...newTracks],
@@ -918,18 +918,18 @@ export async function refinePlaylistWithChat(
           };
         }
       }
-      
+
       return {
         message: `Couldn't find replacement tracks. Try a different description!`,
         action: 'no-change',
       };
     }
-    
+
     return {
       message: parsedRequest.explanation || "I'm ready to help! Tell me what you want to change.",
       action: 'no-change',
     };
-    
+
   } catch (err: any) {
     console.error('[AgenticEngine] Refinement error:', err);
     return {
@@ -950,16 +950,16 @@ export async function getAISuggestion(userId: string): Promise<{
   try {
     const context = agentMemory.getPersonalizedContext(userId);
     const fingerprint = getTasteFingerprint(userId);
-    
+
     if (!fingerprint || fingerprint.stats.totalPlaylistsGenerated < 2) {
       return null; // Not enough data
     }
-    
+
     // Get recent prompts from export data
     const userData = agentMemory.exportUserData(userId);
     const recentPrompts = userData?.recentPlaylists?.slice(-5)
       .map((p: PlaylistMemoryEntry) => p.intent.rawPrompt) || [];
-    
+
     return await generatePersonalizedSuggestion(
       fingerprint.topGenres,
       fingerprint.topMoods,
@@ -978,24 +978,24 @@ export async function getAISuggestion(userId: string): Promise<{
 export async function getAIMemorySummary(userId: string): Promise<string> {
   try {
     const fingerprint = getTasteFingerprint(userId);
-    
+
     // Brand new user with no playlists
     if (!fingerprint || fingerprint.stats.totalPlaylistsGenerated === 0) {
       return "Welcome to Playlistify AI! 🎵 Create your first playlist and I'll start learning your unique music taste.";
     }
-    
+
     // User with just 1 playlist
     if (fingerprint.stats.totalPlaylistsGenerated === 1) {
       return "Great first playlist! 🎶 Create a few more and I'll start building your personalized music profile.";
     }
-    
+
     // User with 2-3 playlists - still learning
     if (fingerprint.stats.totalPlaylistsGenerated < 4) {
       return `I'm getting to know you! You've created ${fingerprint.stats.totalPlaylistsGenerated} playlists. Keep going and I'll unlock deeper insights about your taste.`;
     }
-    
+
     const context = agentMemory.getPersonalizedContext(userId);
-    
+
     return await generateMemorySummary(
       fingerprint.stats.totalPlaylistsGenerated,
       fingerprint.topGenres,

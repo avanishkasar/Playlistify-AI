@@ -1,11 +1,9 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-import * as spotifyHandler from "./spotifyHandler.js";
-import { parsePlaylistIntent } from "./nlpHelper.js";
-import { RateLimiter } from "./rateLimiter.js";
-import { MCPRequest, MCPResponse, FeedbackAction } from "./types.js";
-import { agentMemory } from "./agentMemory.js";
+// Services
+import * as spotifyHandler from "./services/spotifyHandler.js";
+import { agentMemory } from "./services/agentMemory.js";
 import {
   getProactiveSuggestion,
   generateAgenticPlaylist,
@@ -18,11 +16,17 @@ import {
   getAISuggestion,
   getAIMemorySummary,
   getAICoverPrompt
-} from "./agenticEngine.js";
-import { parseEnhancedIntent, generateExplanation, suggestModifications } from "./intentEngine.js";
-import userAuthRoutes from "./userAuth.js";
-import adminRoutes from "./adminRoutes.js";
-import collabRoutes from "./collabRoutes.js";
+} from "./services/agenticEngine.js";
+import { parseEnhancedIntent, generateExplanation, suggestModifications } from "./services/intentEngine.js";
+// Routes
+import userAuthRoutes from "./routes/userAuth.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import collabRoutes from "./routes/collabRoutes.js";
+// Utils
+import { parsePlaylistIntent } from "./utils/nlpHelper.js";
+import { RateLimiter } from "./utils/rateLimiter.js";
+// Types & Database
+import { MCPRequest, MCPResponse, FeedbackAction } from "./types.js";
 import { incrementPlaylistCount, getLeaderboard } from "./database.js";
 
 const app = express();
@@ -859,7 +863,7 @@ app.post("/api/set-playlist-cover", async (req: Request, res: Response) => {
 // JIOSAAVN DOWNLOAD ENDPOINTS - For downloading playlists as MP3s
 // ============================================================================
 
-import * as jiosaavnService from "./jiosaavnService.js";
+import * as jiosaavnService from "./services/jiosaavnService.js";
 
 /**
  * Search songs on JioSaavn
