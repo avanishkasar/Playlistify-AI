@@ -24,6 +24,16 @@ class AuthButton {
       });
     }
 
+    // Listen for localStorage changes (profile picture updates)
+    window.addEventListener('storage', () => {
+      this.render();
+    });
+
+    // Also listen for custom event when profile is updated on same page
+    window.addEventListener('profileUpdated', () => {
+      this.render();
+    });
+
     // Initial render
     this.render();
   }

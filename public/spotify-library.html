@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Library - Playlistify AI</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth.css">
+  <style>
+    .page-container {
+      min-height: 100vh;
+      padding: 2rem;
+      padding-top: 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .library-hero {
+      text-align: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .library-hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #1DB954, #1ed760, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .library-hero h1 i {
+      -webkit-text-fill-color: #1DB954;
+    }
+
+    .library-hero p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Connection Required Card */
+    .connect-required {
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.08), rgba(139, 92, 246, 0.05));
+      border: 1px solid rgba(29, 185, 84, 0.25);
+      border-radius: 28px;
+      padding: 3rem 2rem;
+      text-align: center;
+      max-width: 550px;
+      margin: 2rem auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .connect-required::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(29, 185, 84, 0.1) 0%, transparent 50%);
+      animation: rotateGlow 15s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes rotateGlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .connect-required .icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .connect-required h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .connect-required p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    .connect-required .spotify-btn {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Setup Wizard Container */
+    .setup-wizard {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .wizard-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .wizard-header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .wizard-header h2 i {
+      color: var(--spotify-green);
+    }
+
+    .wizard-header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Progress Steps Indicator */
+    .progress-steps {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .progress-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-dot.active {
+      border-color: var(--spotify-green);
+      color: var(--spotify-green);
+      background: rgba(29, 185, 84, 0.15);
+      box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+    }
+
+    .progress-dot.completed {
+      background: var(--spotify-green);
+      border-color: var(--spotify-green);
+      color: #000;
+    }
+
+    .progress-line {
+      width: 60px;
+      height: 2px;
+      background: var(--border-subtle);
+      transition: background 0.4s ease;
+    }
+
+    .progress-line.completed {
+      background: var(--spotify-green);
+    }
+
+    /* Step Cards */
+    .step-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+
+    .step-card.active {
+      opacity: 1;
+      transform: scale(1);
+      border-color: rgba(29, 185, 84, 0.4);
+      background: rgba(29, 185, 84, 0.03);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .step-card.completed {
+      opacity: 0.7;
+      border-color: rgba(29, 185, 84, 0.3);
+      background: rgba(29, 185, 84, 0.05);
+    }
+
+    .step-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .step-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.2), rgba(29, 185, 84, 0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--spotify-green);
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .step-card.completed .step-badge {
+      background: linear-gradient(135deg, #1DB954, #1ed760);
+      color: #000;
+    }
+
+    .step-info h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .step-info p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .step-content {
+      margin-top: 1.5rem;
+      padding-left: 64px;
+    }
+
+    /* Input Fields */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .cred-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.3s ease;
+    }
+
+    .cred-input:focus {
+      outline: none;
+      border-color: var(--spotify-green);
+      box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.15);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .cred-input::placeholder {
+      color: var(--text-muted);
+      font-family: var(--font-main);
+      font-size: 0.9rem;
+    }
+
+    .input-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .input-hint i {
+      color: var(--spotify-green);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin: 1rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--spotify-green);
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-block pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .code-block .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .code-block .copy-btn:hover {
+      background: rgba(29, 185, 84, 0.2);
+      color: var(--spotify-green);
+    }
+
+    /* Buttons */
+    .spotify-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.9rem 1.75rem;
+      background: linear-gradient(135deg, #1DB954, #1ed760);
+      color: #000;
+      border: none;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+    }
+
+    .spotify-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(29, 185, 84, 0.45);
+    }
+
+    .spotify-btn:active {
+      transform: scale(0.98);
+    }
+
+    .spotify-btn.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .spotify-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--spotify-green);
+      color: var(--spotify-green);
+    }
+
+    .spotify-btn.danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .spotify-btn.danger:hover {
+      box-shadow: 0 8px 30px rgba(239, 68, 68, 0.45);
+    }
+
+    .spotify-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Connection Status Card */
+    .connection-card {
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.1), rgba(29, 185, 84, 0.02));
+      border: 1px solid rgba(29, 185, 84, 0.3);
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .connection-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .connection-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1DB954, #1ed760);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(29, 185, 84, 0.4);
+    }
+
+    .connection-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .connection-details h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .connection-details p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-badge.connected {
+      background: rgba(29, 185, 84, 0.2);
+      color: var(--spotify-green);
+      border: 1px solid rgba(29, 185, 84, 0.3);
+    }
+
+    /* Library Tabs */
+    .library-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 0.5rem;
+      border-radius: 100px;
+      border: 1px solid var(--border-subtle);
+      width: fit-content;
+    }
+
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 100px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: var(--spotify-green);
+      color: #000;
+    }
+
+    /* Playlist Grid */
+    .playlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .playlist-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 1.25rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .playlist-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(29, 185, 84, 0.4);
+      transform: translateY(-6px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .playlist-card.saved {
+      border-color: rgba(29, 185, 84, 0.5);
+      background: rgba(29, 185, 84, 0.05);
+    }
+
+    .playlist-card .saved-badge {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: var(--spotify-green);
+      color: #000;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .playlist-cover {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.2), rgba(139, 92, 246, 0.2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .playlist-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .playlist-cover .play-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .playlist-card:hover .play-overlay {
+      opacity: 1;
+    }
+
+    .play-overlay i {
+      font-size: 2.5rem;
+      color: var(--spotify-green);
+    }
+
+    .playlist-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.35rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .playlist-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .playlist-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .playlist-action-btn {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+
+    .playlist-action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .playlist-action-btn.delete:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #ef4444;
+    }
+
+    .playlist-action-btn.open:hover {
+      background: rgba(29, 185, 84, 0.2);
+      border-color: var(--spotify-green);
+      color: var(--spotify-green);
+    }
+
+    .playlist-action-btn.save {
+      background: rgba(29, 185, 84, 0.1);
+      border-color: rgba(29, 185, 84, 0.3);
+      color: var(--spotify-green);
+    }
+
+    .playlist-action-btn.save:hover {
+      background: rgba(29, 185, 84, 0.2);
+    }
+
+    .playlist-action-btn.unsave {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    /* Create Playlist Form */
+    .create-form {
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2rem;
+    }
+
+    .create-form textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Loading & Empty States */
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(29, 185, 84, 0.2);
+      border-top-color: var(--spotify-green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .empty-state .icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10001;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 1rem 1.5rem;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: toastIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.success {
+      background: rgba(29, 185, 84, 0.95);
+      color: #000;
+    }
+
+    .toast.error {
+      background: rgba(239, 68, 68, 0.95);
+      color: #fff;
+    }
+
+    .toast.info {
+      background: rgba(59, 130, 246, 0.95);
+      color: #fff;
+    }
+
+    .toast.warning {
+      background: rgba(245, 158, 11, 0.95);
+      color: #000;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toast.hiding {
+      animation: toastOut 0.3s ease forwards;
+    }
+
+    @keyframes toastOut {
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+
+    /* Delete Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2.5rem;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-content h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-content p {
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+      line-height: 1.6;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    /* Quick Connect Section */
+    .quick-connect {
+      text-align: center;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .quick-connect p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .connection-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .connection-info {
+        flex-direction: column;
+      }
+
+      .step-content {
+        padding-left: 0;
+      }
+
+      .progress-line {
+        width: 30px;
+      }
+
+      .library-tabs {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Cursor Glow Effect -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <!-- Animated Gradient Background -->
+  <div class="gradient-bg">
+    <div class="gradient-overlay"></div>
+    <div class="gradient-blob blob-1"></div>
+    <div class="gradient-blob blob-2"></div>
+    <div class="gradient-blob blob-3"></div>
+    <div class="gradient-blob blob-4"></div>
+    <div class="noise-overlay"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="/" class="logo">
+      <img src="images/favicon.png" alt="Playlistify AI" class="logo-img">
+      <span class="logo-text">Playlistify <span class="logo-ai">AI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="app.html" class="nav-link">Home</a>
+      <a href="collab.html" class="nav-link">Collab</a>
+      <a href="timeline.html" class="nav-link">Timeline</a>
+      <a href="curated.html" class="nav-link">Curated</a>
+    </div>
+    <div class="nav-right">
+      <a href="spotify-library.html" class="spotify-library-btn connected" id="navLibraryBtn" title="Spotify Library">
+        <svg class="spotify-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+        <span>Library</span>
+      </a>
+      <div id="authButtonContainer"></div>
+      <a href="apify.html" class="pro-button">
+        <span class="pro-icon">⚡</span>
+        <span>Pro</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="page-container page-slide-in">
+    <section class="library-hero">
+      <h1><i class="fab fa-spotify"></i> Spotify Library</h1>
+      <p>Connect your Spotify account to create playlists directly and manage your library</p>
+    </section>
+
+    <!-- Connected View -->
+    <div id="connectedView" style="display: none;">
+      <div class="connection-card">
+        <div class="connection-info">
+          <div class="connection-avatar" id="userAvatar">🎵</div>
+          <div class="connection-details">
+            <h3 id="userName">Spotify User</h3>
+            <p id="userEmail">Connected to Spotify</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+          <span class="status-badge connected">
+            <i class="fas fa-check-circle"></i> Connected
+          </span>
+          <button class="spotify-btn secondary" onclick="SpotifyLibrary.disconnect()">
+            <i class="fas fa-unlink"></i> Disconnect
+          </button>
+        </div>
+      </div>
+
+      <!-- Library Tabs -->
+      <div class="library-tabs">
+        <button class="tab-btn active" onclick="SpotifyLibrary.switchTab('playlists')">
+          <i class="fas fa-list"></i> Spotify Playlists
+        </button>
+        <button class="tab-btn" onclick="SpotifyLibrary.switchTab('saved')">
+          <i class="fas fa-bookmark"></i> Saved Library
+        </button>
+        <button class="tab-btn" onclick="SpotifyLibrary.switchTab('create')">
+          <i class="fas fa-plus"></i> Create New
+        </button>
+      </div>
+
+      <!-- Playlists Section (from Spotify) -->
+      <div id="playlistsTab" class="library-section">
+        <div class="section-header">
+          <h2>Your Spotify Playlists</h2>
+          <button class="spotify-btn secondary" onclick="SpotifyLibrary.refreshPlaylists()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div id="playlistGrid" class="playlist-grid">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading your playlists...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved Library Section -->
+      <div id="savedTab" class="library-section" style="display: none;">
+        <div class="section-header">
+          <h2>Saved to Playlistify</h2>
+        </div>
+        <div id="savedGrid" class="playlist-grid">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading saved playlists...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create Tab -->
+      <div id="createTab" class="library-section" style="display: none;">
+        <div class="section-header">
+          <h2>Create New Playlist</h2>
+        </div>
+        <div class="create-form">
+          <div class="input-group">
+            <div class="input-wrapper">
+              <label>Playlist Name</label>
+              <input type="text" id="newPlaylistName" class="cred-input" placeholder="My Awesome Playlist">
+            </div>
+            <div class="input-wrapper">
+              <label>Description (Optional)</label>
+              <textarea id="newPlaylistDesc" class="cred-input" placeholder="A collection of my favorite tracks..." rows="3"></textarea>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="spotify-btn" onclick="SpotifyLibrary.createEmptyPlaylist()">
+              <i class="fas fa-plus"></i> Create Playlist
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not Connected View -->
+    <div id="notConnectedView">
+      <div class="connect-required" id="connectPrompt">
+        <div class="icon">🔗</div>
+        <h2>Connect Your Spotify Account</h2>
+        <p>Link your Spotify account to create playlists directly in your library, manage existing playlists, and more.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 1rem 0;">Just one click - we'll handle everything automatically!</p>
+        <button class="spotify-btn" onclick="SpotifyLibrary.connectSpotify()">
+          <i class="fab fa-spotify"></i> Connect with Spotify
+        </button>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">
+          <a href="#" onclick="event.preventDefault(); SpotifyLibrary.showAdvancedSetup();" style="color: var(--text-muted); text-decoration: underline;">
+            Need manual setup for Apify Actor?
+          </a>
+        </p>
+      </div>
+
+      <!-- Setup Wizard (Hidden - kept for Apify users who need manual setup) -->
+      <div id="setupGuide" class="setup-wizard" style="display: none;">
+        <div class="wizard-header">
+          <h2><i class="fab fa-spotify"></i> Connect Your Spotify</h2>
+          <p>Follow these 4 simple steps to connect your account</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+          <div class="progress-step">
+            <div class="progress-dot active" id="progressDot1">1</div>
+          </div>
+          <div class="progress-line" id="progressLine1"></div>
+          <div class="progress-step">
+            <div class="progress-dot" id="progressDot2">2</div>
+          </div>
+          <div class="progress-line" id="progressLine2"></div>
+          <div class="progress-step">
+            <div class="progress-dot" id="progressDot3">3</div>
+          </div>
+          <div class="progress-line" id="progressLine3"></div>
+          <div class="progress-step">
+            <div class="progress-dot" id="progressDot4">4</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Create Spotify App -->
+        <div class="step-card active" id="step1Card">
+          <div class="step-card-header">
+            <div class="step-badge" id="step1Badge">1</div>
+            <div class="step-info">
+              <h3>Open Spotify Developer Dashboard</h3>
+              <p>Sign in with your Spotify account and create a new app to get your credentials.</p>
+            </div>
+          </div>
+          <div class="step-content">
+            <a href="https://developer.spotify.com/dashboard" target="_blank" class="spotify-btn">
+              <i class="fas fa-external-link-alt"></i> Open Spotify Dashboard
+            </a>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;"><strong>Quick Setup Guide:</strong></p>
+              <ol style="color: var(--text-muted); font-size: 0.85rem; padding-left: 1.25rem; margin: 0;">
+                <li style="margin-bottom: 0.5rem;">Click "Create App" button</li>
+                <li style="margin-bottom: 0.5rem;">Enter any App name (e.g., "My Playlistify")</li>
+                <li style="margin-bottom: 0.5rem;">Add Redirect URI: <code style="color: var(--spotify-green);">http://127.0.0.1:8888/callback</code></li>
+                <li style="margin-bottom: 0.5rem;">Check "Web API" under APIs used</li>
+                <li>Click "Save" and then go to "Settings" to get your credentials</li>
+              </ol>
+            </div>
+            <div class="btn-group">
+              <button class="spotify-btn secondary" onclick="SpotifyLibrary.completeStep(1)">
+                <i class="fas fa-check"></i> I've Created an App
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Enter Client ID & Secret -->
+        <div class="step-card" id="step2Card">
+          <div class="step-card-header">
+            <div class="step-badge" id="step2Badge">2</div>
+            <div class="step-info">
+              <h3>Enter Client ID & Client Secret</h3>
+              <p>Copy the credentials from your Spotify app settings and paste them below.</p>
+            </div>
+          </div>
+          <div class="step-content">
+            <div class="input-group">
+              <div class="input-wrapper">
+                <label>Client ID</label>
+                <input type="text" id="clientIdInput" class="cred-input" placeholder="e.g., 420c6250bbc94a0da4369d18bb8b9371">
+              </div>
+              <div class="input-wrapper">
+                <label>Client Secret</label>
+                <input type="password" id="clientSecretInput" class="cred-input" placeholder="e.g., 8b5d9e2aa72c480a852d60b2b37d1c39">
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="spotify-btn secondary" onclick="SpotifyLibrary.completeStep(2)">
+                <i class="fas fa-arrow-right"></i> Continue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Run Command -->
+        <div class="step-card" id="step3Card">
+          <div class="step-card-header">
+            <div class="step-badge" id="step3Badge">3</div>
+            <div class="step-info">
+              <h3>Get Your Refresh Token</h3>
+              <p>Use the Spotify Token Generator tool to get your refresh token.</p>
+            </div>
+          </div>
+          <div class="step-content">
+            <!-- Automation Option -->
+            <div style="background: linear-gradient(135deg, rgba(29, 185, 84, 0.15), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+              <h4 style="color: var(--spotify-green); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-robot"></i> Automated Method (Recommended)
+              </h4>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                Use our automated script to get your refresh token quickly:
+              </p>
+              <div class="code-block" style="font-size: 0.85rem; margin-bottom: 1rem;">
+                <pre># 1. Open terminal/CMD in the project folder
+# 2. Install dependencies (if not already installed)
+npm install express spotify-web-api-node
+
+# 3. Edit scripts/spotify-auth-helper.js and add your credentials:
+#    CLIENT_ID = 'your_client_id'
+#    CLIENT_SECRET = 'your_client_secret'
+
+# 4. Run the script
+node scripts/spotify-auth-helper.js
+
+# 5. Open http://127.0.0.1:8888/login in your browser
+# 6. Authorize and copy the refresh token</pre>
+              </div>
+              <div class="input-hint">
+                <i class="fas fa-info-circle"></i>
+                The script automatically handles all scopes and redirects. Much easier!
+              </div>
+            </div>
+
+            <!-- Manual Method -->
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+              <h4 style="color: var(--text-secondary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-hand-pointer"></i> Manual Method (Web Tool)
+              </h4>
+              <a href="https://alecchen.dev/spotify-refresh-token/" target="_blank" class="spotify-btn secondary" style="margin-bottom: 1rem;">
+                <i class="fas fa-external-link-alt"></i> Open Token Generator
+              </a>
+              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;"><strong>Required Scopes (Select ALL of these):</strong></p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+                  <div style="padding: 0.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 8px; border: 1px solid rgba(29, 185, 84, 0.3);">
+                    <code style="color: var(--spotify-green); font-size: 0.8rem;">user-read-email</code>
+                  </div>
+                  <div style="padding: 0.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 8px; border: 1px solid rgba(29, 185, 84, 0.3);">
+                    <code style="color: var(--spotify-green); font-size: 0.8rem;">user-read-private</code>
+                  </div>
+                  <div style="padding: 0.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 8px; border: 1px solid rgba(29, 185, 84, 0.3);">
+                    <code style="color: var(--spotify-green); font-size: 0.8rem;">playlist-modify-public</code>
+                  </div>
+                  <div style="padding: 0.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 8px; border: 1px solid rgba(29, 185, 84, 0.3);">
+                    <code style="color: var(--spotify-green); font-size: 0.8rem;">playlist-modify-private</code>
+                  </div>
+                  <div style="padding: 0.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 8px; border: 1px solid rgba(29, 185, 84, 0.3);">
+                    <code style="color: var(--spotify-green); font-size: 0.8rem;">playlist-read-private</code>
+                  </div>
+                  <div style="padding: 0.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 8px; border: 1px solid rgba(29, 185, 84, 0.3);">
+                    <code style="color: var(--spotify-green); font-size: 0.8rem;">playlist-read-collaborative</code>
+                  </div>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;"><strong>Steps:</strong></p>
+                <ol style="color: var(--text-muted); font-size: 0.85rem; padding-left: 1.25rem; margin: 0;">
+                  <li style="margin-bottom: 0.5rem;">Enter your Client ID and Client Secret from Step 2</li>
+                  <li style="margin-bottom: 0.5rem;">In the "Scope" section, select ALL 6 scopes listed above (or use "Select all" if available)</li>
+                  <li style="margin-bottom: 0.5rem;">Make sure redirect URI is set to: <code style="color: var(--spotify-green);">https://alecchen.dev/spotify-refresh-token</code></li>
+                  <li style="margin-bottom: 0.5rem;">Click "Submit" or "Get Refresh Token"</li>
+                  <li>Authorize with Spotify and copy the refresh token (starts with <code style="color: var(--spotify-green);">AQ...</code>)</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="input-hint" style="margin-top: 1rem;">
+              <i class="fas fa-lightbulb"></i>
+              The refresh token starts with <code style="color: var(--spotify-green);">AQ...</code> - make sure to copy the entire token!
+            </div>
+            <div class="btn-group">
+              <button class="spotify-btn secondary" onclick="SpotifyLibrary.completeStep(3)">
+                <i class="fas fa-check"></i> I Have the Token
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Enter Refresh Token -->
+        <div class="step-card" id="step4Card">
+          <div class="step-card-header">
+            <div class="step-badge" id="step4Badge">4</div>
+            <div class="step-info">
+              <h3>Enter Refresh Token & Connect</h3>
+              <p>Paste your refresh token below to complete the connection.</p>
+            </div>
+          </div>
+          <div class="step-content">
+            <div class="input-group">
+              <div class="input-wrapper">
+                <label>Refresh Token</label>
+                <input type="password" id="refreshTokenInput" class="cred-input" placeholder="Starts with AQ...">
+                <div class="input-hint">
+                  <i class="fas fa-shield-alt"></i>
+                  Your token is stored securely and only used to create playlists in your account.
+                </div>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="spotify-btn" onclick="SpotifyLibrary.saveCredentials()">
+                <i class="fas fa-link"></i> Connect Spotify
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Connect Alternative -->
+        <div class="quick-connect">
+          <p>Prefer a simpler method? Try our quick OAuth connect (may not work for all accounts)</p>
+          <button class="spotify-btn secondary" onclick="SpotifyConnect.connect()">
+            <i class="fab fa-spotify"></i> Quick OAuth Connect
+          </button>
+        </div>
+
+        <!-- Apify Deployment Note -->
+        <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px;">
+          <h4 style="color: var(--accent-purple); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-cloud"></i> Using Apify Actor?
+          </h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+            If you're deploying on Apify, add these environment variables in your Actor settings:
+          </p>
+          <div class="code-block" style="font-size: 0.8rem;">
+            <pre>SPOTIFY_CLIENT_ID=your_client_id
+SPOTIFY_CLIENT_SECRET=your_client_secret
+SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
+          </div>
+          <a href="https://apify.com/viverun/playlistfy" target="_blank" class="spotify-btn secondary" style="margin-top: 1rem;">
+            <i class="fas fa-external-link-alt"></i> View Apify Actor
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+      <h3>🗑️ Delete Playlist?</h3>
+      <p>Are you sure you want to delete "<span id="deletePlaylistName"></span>"? This will remove it from your Spotify account.</p>
+      <div class="modal-actions">
+        <button class="spotify-btn secondary" onclick="SpotifyLibrary.closeDeleteModal()">Cancel</button>
+        <button class="spotify-btn danger" onclick="SpotifyLibrary.confirmDelete()">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="spotify-connect.js"></script>
+  <script src="userAuth.js"></script>
+  <script src="auth-button.js"></script>
+  <script src="cursor.js"></script>
+  <script>
+    const SpotifyLibrary = {
+      currentStep: 1,
+      credentials: {},
+      playlists: [],
+      savedPlaylists: [],
+      deleteTargetId: null,
+
+      async init() {
+        new AuthButton('authButtonContainer');
+        
+        // Check if user is logged in first
+        const userId = this.getCurrentUserId();
+        if (!userId) {
+          this.showToast('Please sign in to access Spotify Library', 'warning');
+          setTimeout(() => {
+            window.location.href = 'signin.html?redirect=spotify-library.html';
+          }, 2000);
+          return;
+        }
+
+        // Handle OAuth callback
+        this.handleOAuthCallback();
+
+        await this.checkConnection();
+        this.updateNavButton();
+      },
+
+      handleOAuthCallback() {
+        const params = new URLSearchParams(window.location.search);
+        const connected = params.get('spotify_connected');
+        const dbStored = params.get('db_stored');
+        const error = params.get('spotify_error');
+
+        if (error) {
+          this.showToast(`Connection failed: ${error}`, 'error');
+          // Clean URL
+          window.history.replaceState({}, '', window.location.pathname);
+          return;
+        }
+
+        if (connected === 'true' && dbStored === 'true') {
+          this.showToast('✅ Spotify connected successfully!', 'success');
+          // Clean URL
+          window.history.replaceState({}, '', window.location.pathname);
+          // Refresh connection status
+          setTimeout(() => {
+            this.checkConnection();
+          }, 500);
+        }
+      },
+
+      connectSpotify() {
+        // Use the existing OAuth flow - fully automated!
+        // Add return URL so callback knows where to redirect
+        const userId = this.getCurrentUserId();
+        let loginUrl = '/api/spotify/login';
+        if (userId) {
+          loginUrl += `?userId=${userId}&returnUrl=spotify-library.html`;
+        } else {
+          loginUrl += '?returnUrl=spotify-library.html';
+        }
+        window.location.href = loginUrl;
+      },
+
+      getCurrentUserId() {
+        try {
+          const authUser = localStorage.getItem('auth_user');
+          if (authUser) {
+            const user = JSON.parse(authUser);
+            return user.id || null;
+          }
+        } catch (e) {
+          console.log('Could not get user ID');
+        }
+        return null;
+      },
+
+      updateNavButton() {
+        const navBtn = document.getElementById('navLibraryBtn');
+        const isConnected = SpotifyConnect.isConnected() || 
+          (SpotifyConnect._dbConnection && SpotifyConnect._dbConnection.connected);
+        
+        if (isConnected) {
+          navBtn.classList.add('connected');
+        } else {
+          navBtn.classList.remove('connected');
+        }
+      },
+
+      async checkConnection() {
+        const userId = this.getCurrentUserId();
+        if (!userId) {
+          this.showNotConnectedView();
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/spotify/library/status?userId=${userId}`);
+          const data = await response.json();
+
+          if (data.connected) {
+            await SpotifyConnect.checkDbConnectionStatus();
+            this.showConnectedView();
+            this.loadUserProfile();
+            this.loadPlaylists();
+            this.loadSavedPlaylists();
+          } else {
+            this.showNotConnectedView();
+          }
+        } catch (err) {
+          console.error('Connection check failed:', err);
+          this.showNotConnectedView();
+        }
+      },
+
+      showConnectedView() {
+        document.getElementById('connectedView').style.display = 'block';
+        document.getElementById('notConnectedView').style.display = 'none';
+      },
+
+      showNotConnectedView() {
+        document.getElementById('connectedView').style.display = 'none';
+        document.getElementById('notConnectedView').style.display = 'block';
+      },
+
+      showSetupGuide() {
+        document.getElementById('connectPrompt').style.display = 'none';
+        document.getElementById('setupGuide').style.display = 'block';
+      },
+
+      showAdvancedSetup() {
+        this.showSetupGuide();
+        document.getElementById('setupGuide').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+
+      completeStep(step) {
+        if (step === 2) {
+          const clientId = document.getElementById('clientIdInput').value.trim();
+          const clientSecret = document.getElementById('clientSecretInput').value.trim();
+          
+          if (!clientId || !clientSecret) {
+            this.showToast('Please enter both Client ID and Client Secret', 'error');
+            return;
+          }
+          
+          this.credentials.clientId = clientId;
+          this.credentials.clientSecret = clientSecret;
+          
+          const command = `npx spotify-token-generator --client-id ${clientId} --client-secret ${clientSecret}`;
+          document.getElementById('tokenCommand').textContent = command;
+        }
+
+        document.getElementById(`progressDot${step}`).classList.remove('active');
+        document.getElementById(`progressDot${step}`).classList.add('completed');
+        document.getElementById(`progressDot${step}`).innerHTML = '<i class="fas fa-check"></i>';
+        
+        document.getElementById(`step${step}Badge`).innerHTML = '<i class="fas fa-check"></i>';
+        document.getElementById(`step${step}Card`).classList.remove('active');
+        document.getElementById(`step${step}Card`).classList.add('completed');
+
+        if (step < 4) {
+          document.getElementById(`progressLine${step}`).classList.add('completed');
+          document.getElementById(`progressDot${step + 1}`).classList.add('active');
+          document.getElementById(`step${step + 1}Card`).classList.add('active');
+          document.getElementById(`step${step + 1}Card`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        this.currentStep = step + 1;
+      },
+
+      copyCode() {
+        const command = document.getElementById('tokenCommand').textContent;
+        navigator.clipboard.writeText(command);
+        this.showToast('Command copied to clipboard!', 'success');
+      },
+
+      async saveCredentials() {
+        const refreshToken = document.getElementById('refreshTokenInput').value.trim();
+        
+        if (!refreshToken) {
+          this.showToast('Please enter the refresh token', 'error');
+          return;
+        }
+
+        if (!refreshToken.startsWith('AQ')) {
+          this.showToast('Invalid refresh token format. It should start with "AQ"', 'error');
+          return;
+        }
+
+        this.credentials.refreshToken = refreshToken;
+        const userId = this.getCurrentUserId();
+        
+        if (!userId) {
+          this.showToast('Please sign in first', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/spotify/save-credentials', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              clientId: this.credentials.clientId,
+              clientSecret: this.credentials.clientSecret,
+              refreshToken: this.credentials.refreshToken
+            })
+          });
+
+          if (response.ok) {
+            this.showToast('Spotify connected successfully!', 'success');
+            await this.checkConnection();
+          } else {
+            const data = await response.json();
+            this.showToast(data.message || 'Failed to connect', 'error');
+          }
+        } catch (err) {
+          console.error('Failed to save credentials:', err);
+          this.showToast('Connection error', 'error');
+        }
+      },
+
+      loadUserProfile() {
+        const profile = SpotifyConnect.getUserProfile();
+        if (profile) {
+          document.getElementById('userName').textContent = profile.display_name || 'Spotify User';
+          document.getElementById('userEmail').textContent = profile.email || 'Connected';
+          
+          const avatar = document.getElementById('userAvatar');
+          if (profile.images && profile.images[0]) {
+            avatar.innerHTML = `<img src="${profile.images[0].url}" alt="Avatar">`;
+          }
+        }
+      },
+
+      async loadPlaylists() {
+        const grid = document.getElementById('playlistGrid');
+        if (!grid) return;
+        
+        grid.innerHTML = `
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading your playlists...</p>
+          </div>
+        `;
+
+        try {
+          const userId = this.getCurrentUserId();
+          if (!userId) {
+            grid.innerHTML = `
+              <div class="empty-state">
+                <div class="icon"><i class="fas fa-user-slash"></i></div>
+                <h3>Please sign in</h3>
+                <p>You need to be signed in to view your Spotify playlists.</p>
+              </div>
+            `;
+            return;
+          }
+
+          const response = await fetch(`/api/spotify/library/playlists?userId=${userId}`);
+          
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            console.error('Failed to load playlists:', data);
+            
+            if (data.error === 'not_connected' || data.error === 'unauthorized') {
+              this.showToast('Spotify not connected', 'error');
+              this.showNotConnectedView();
+              return;
+            }
+            
+            grid.innerHTML = `
+              <div class="empty-state">
+                <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3>Could not load playlists</h3>
+                <p>${data.message || 'Please try refreshing or reconnecting your Spotify account.'}</p>
+                <button class="spotify-btn" onclick="SpotifyLibrary.refreshPlaylists()" style="margin-top: 1rem;">
+                  <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+              </div>
+            `;
+            return;
+          }
+
+          const data = await response.json();
+          this.playlists = data.playlists || [];
+          
+          if (this.playlists.length === 0) {
+            grid.innerHTML = `
+              <div class="empty-state">
+                <div class="icon"><i class="fas fa-music"></i></div>
+                <h3>No playlists yet</h3>
+                <p>Create your first playlist to get started!</p>
+              </div>
+            `;
+          } else {
+            this.renderPlaylists();
+          }
+        } catch (err) {
+          console.error('Failed to load playlists:', err);
+          grid.innerHTML = `
+            <div class="empty-state">
+              <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+              <h3>Could not load playlists</h3>
+              <p>Please try refreshing or reconnecting your Spotify account.</p>
+              <button class="spotify-btn" onclick="SpotifyLibrary.refreshPlaylists()" style="margin-top: 1rem;">
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+            </div>
+          `;
+        }
+      },
+
+      async loadSavedPlaylists() {
+        const grid = document.getElementById('savedGrid');
+        grid.innerHTML = `
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading saved playlists...</p>
+          </div>
+        `;
+
+        try {
+          const userId = this.getCurrentUserId();
+          const response = await fetch(`/api/spotify/library/saved?userId=${userId}`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to load saved playlists');
+          }
+
+          const data = await response.json();
+          this.savedPlaylists = data.playlists || [];
+          this.renderSavedPlaylists();
+        } catch (err) {
+          console.error('Failed to load saved playlists:', err);
+          grid.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📚</div>
+              <h3>No saved playlists</h3>
+              <p>Save playlists from your Spotify library to access them here.</p>
+            </div>
+          `;
+        }
+      },
+
+      renderPlaylists() {
+        const grid = document.getElementById('playlistGrid');
+        
+        if (this.playlists.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">🎵</div>
+              <h3>No playlists yet</h3>
+              <p>Create your first playlist to get started!</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = this.playlists.map(playlist => `
+          <div class="playlist-card ${playlist.savedToLibrary ? 'saved' : ''}" data-id="${playlist.id}">
+            ${playlist.savedToLibrary ? '<div class="saved-badge"><i class="fas fa-bookmark"></i> Saved</div>' : ''}
+            <div class="playlist-cover">
+              ${playlist.images && playlist.images[0] 
+                ? `<img src="${playlist.images[0].url}" alt="${playlist.name}">`
+                : '🎵'}
+              <div class="play-overlay">
+                <i class="fas fa-play"></i>
+              </div>
+            </div>
+            <div class="playlist-name">${playlist.name}</div>
+            <div class="playlist-meta">
+              <span>${playlist.tracks?.total || 0} tracks</span>
+              ${playlist.public ? '<span>• Public</span>' : '<span>• Private</span>'}
+            </div>
+            <div class="playlist-actions">
+              <button class="playlist-action-btn open" onclick="window.open('${playlist.external_urls?.spotify}', '_blank')">
+                <i class="fas fa-external-link-alt"></i> Open
+              </button>
+              ${playlist.savedToLibrary 
+                ? `<button class="playlist-action-btn unsave" onclick="SpotifyLibrary.removeFromLibrary('${playlist.id}')">
+                    <i class="fas fa-bookmark"></i> Unsave
+                   </button>`
+                : `<button class="playlist-action-btn save" onclick="SpotifyLibrary.saveToLibrary('${playlist.id}')">
+                    <i class="far fa-bookmark"></i> Save
+                   </button>`
+              }
+              <button class="playlist-action-btn delete" onclick="SpotifyLibrary.showDeleteModal('${playlist.id}', '${playlist.name.replace(/'/g, "\\'")}')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      },
+
+      renderSavedPlaylists() {
+        const grid = document.getElementById('savedGrid');
+        
+        if (this.savedPlaylists.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📚</div>
+              <h3>No saved playlists</h3>
+              <p>Save playlists from your Spotify library to access them here.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = this.savedPlaylists.map(playlist => `
+          <div class="playlist-card saved" data-id="${playlist.playlistId}">
+            <div class="saved-badge"><i class="fas fa-bookmark"></i> Saved</div>
+            <div class="playlist-cover">
+              ${playlist.coverImage 
+                ? `<img src="${playlist.coverImage}" alt="${playlist.playlistName}">`
+                : '🎵'}
+              <div class="play-overlay">
+                <i class="fas fa-play"></i>
+              </div>
+            </div>
+            <div class="playlist-name">${playlist.playlistName}</div>
+            <div class="playlist-meta">
+              <span>${playlist.trackCount || 0} tracks</span>
+              ${playlist.ownerName ? `<span>• ${playlist.ownerName}</span>` : ''}
+            </div>
+            <div class="playlist-actions">
+              <button class="playlist-action-btn open" onclick="window.open('${playlist.spotifyUrl}', '_blank')">
+                <i class="fas fa-external-link-alt"></i> Open
+              </button>
+              <button class="playlist-action-btn unsave" onclick="SpotifyLibrary.removeFromLibrary('${playlist.playlistId}')">
+                <i class="fas fa-bookmark"></i> Unsave
+              </button>
+            </div>
+          </div>
+        `).join('');
+      },
+
+      async saveToLibrary(playlistId) {
+        const playlist = this.playlists.find(p => p.id === playlistId);
+        if (!playlist) return;
+
+        const userId = this.getCurrentUserId();
+        if (!userId) {
+          this.showToast('Please sign in first', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/spotify/library/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, playlist })
+          });
+
+          if (response.ok) {
+            this.showToast('Playlist saved to library!', 'success');
+            playlist.savedToLibrary = true;
+            this.renderPlaylists();
+            this.loadSavedPlaylists();
+          } else {
+            throw new Error('Failed to save');
+          }
+        } catch (err) {
+          this.showToast('Failed to save playlist', 'error');
+        }
+      },
+
+      async removeFromLibrary(playlistId) {
+        const userId = this.getCurrentUserId();
+        if (!userId) {
+          this.showToast('Please sign in first', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/spotify/library/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, playlistId })
+          });
+
+          if (response.ok) {
+            this.showToast('Playlist removed from library', 'info');
+            
+            // Update playlists array
+            const playlist = this.playlists.find(p => p.id === playlistId);
+            if (playlist) {
+              playlist.savedToLibrary = false;
+            }
+            
+            this.renderPlaylists();
+            this.loadSavedPlaylists();
+          } else {
+            throw new Error('Failed to remove');
+          }
+        } catch (err) {
+          this.showToast('Failed to remove playlist', 'error');
+        }
+      },
+
+      refreshPlaylists() {
+        this.loadPlaylists();
+        this.showToast('Refreshing playlists...', 'info');
+      },
+
+      switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[onclick="SpotifyLibrary.switchTab('${tab}')"]`).classList.add('active');
+
+        document.getElementById('playlistsTab').style.display = tab === 'playlists' ? 'block' : 'none';
+        document.getElementById('savedTab').style.display = tab === 'saved' ? 'block' : 'none';
+        document.getElementById('createTab').style.display = tab === 'create' ? 'block' : 'none';
+      },
+
+      async createEmptyPlaylist() {
+        const name = document.getElementById('newPlaylistName').value.trim();
+        const description = document.getElementById('newPlaylistDesc').value.trim();
+
+        if (!name) {
+          this.showToast('Please enter a playlist name', 'error');
+          return;
+        }
+
+        try {
+          const userId = this.getCurrentUserId();
+          const response = await fetch('/api/spotify/create-playlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              name,
+              description: description || 'Created with Playlistify AI',
+              trackUris: [],
+              isPublic: false
+            })
+          });
+
+          if (response.ok) {
+            this.showToast('Playlist created!', 'success');
+            document.getElementById('newPlaylistName').value = '';
+            document.getElementById('newPlaylistDesc').value = '';
+            this.switchTab('playlists');
+            this.loadPlaylists();
+          } else {
+            throw new Error('Failed to create playlist');
+          }
+        } catch (err) {
+          this.showToast('Failed to create playlist', 'error');
+        }
+      },
+
+      showDeleteModal(playlistId, playlistName) {
+        this.deleteTargetId = playlistId;
+        document.getElementById('deletePlaylistName').textContent = playlistName;
+        document.getElementById('deleteModal').classList.add('show');
+      },
+
+      closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+        this.deleteTargetId = null;
+      },
+
+      async confirmDelete() {
+        if (!this.deleteTargetId) return;
+
+        try {
+          const userId = this.getCurrentUserId();
+          if (!userId) {
+            this.showToast('Please sign in first', 'error');
+            return;
+          }
+
+          const response = await fetch('/api/spotify/library/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              playlistId: this.deleteTargetId
+            })
+          });
+
+          if (response.ok) {
+            this.showToast('Playlist deleted successfully', 'success');
+            this.closeDeleteModal();
+            // Remove from local arrays
+            this.playlists = this.playlists.filter(p => p.id !== this.deleteTargetId);
+            this.savedPlaylists = this.savedPlaylists.filter(p => p.playlistId !== this.deleteTargetId);
+            // Reload to refresh
+            this.loadPlaylists();
+            this.loadSavedPlaylists();
+          } else {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Failed to delete');
+          }
+        } catch (err) {
+          console.error('Delete error:', err);
+          this.showToast(err.message || 'Failed to delete playlist', 'error');
+        }
+      },
+
+      disconnect() {
+        SpotifyConnect.disconnect();
+        this.showNotConnectedView();
+        this.updateNavButton();
+        this.showToast('Spotify disconnected', 'info');
+      },
+
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+          success: 'fa-check-circle',
+          error: 'fa-exclamation-circle',
+          warning: 'fa-exclamation-triangle',
+          info: 'fa-info-circle'
+        };
+        
+        toast.innerHTML = `
+          <i class="fas ${icons[type] || icons.info}"></i>
+          <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('hiding');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+    };
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      SpotifyLibrary.init();
+    });
+  </script>
+</body>
+</html>

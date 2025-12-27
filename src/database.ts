@@ -132,10 +132,29 @@ export function initializeDatabase() {
     )
   `);
 
+  // Spotify Library table - stores saved playlists from user's Spotify account
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS spotify_library (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      playlist_id TEXT NOT NULL,
+      playlist_name TEXT NOT NULL,
+      cover_image TEXT,
+      track_count INTEGER DEFAULT 0,
+      owner_name TEXT,
+      is_public BOOLEAN DEFAULT 1,
+      spotify_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id, playlist_id)
+    )
+  `);
+
   console.log('✅ Database initialized successfully');
 
   // Seed initial users if database is empty
-  seedInitialUsers();
+  // DISABLED: Only real users should be in the system
+  // seedInitialUsers();
 }
 
 /**
@@ -375,8 +394,23 @@ export function deletePlaylist(playlistId: number, userId: number) {
 
 /**
  * Increment user's playlist generation count
+ * Ensures user_stats exists before updating
  */
 export function incrementPlaylistCount(userId: number) {
+  // First, ensure user_stats exists for this user
+  const checkStmt = db.prepare(`SELECT user_id FROM user_stats WHERE user_id = ?`);
+  const exists = checkStmt.get(userId);
+  
+  if (!exists) {
+    // Create user_stats entry if it doesn't exist
+    const insertStmt = db.prepare(`
+      INSERT INTO user_stats (user_id, total_playlists, total_tracks_added)
+      VALUES (?, 0, 0)
+    `);
+    insertStmt.run(userId);
+  }
+  
+  // Now update the count
   const stmt = db.prepare(`
     UPDATE user_stats
     SET 
@@ -385,7 +419,8 @@ export function incrementPlaylistCount(userId: number) {
     WHERE user_id = ?
   `);
 
-  stmt.run(userId);
+  const result = stmt.run(userId);
+  console.log(`[Database] Incremented playlist count for user ${userId}, changes: ${result.changes}`);
 }
 
 /**
@@ -445,6 +480,7 @@ export function validateAdminCredentials(username: string, password: string): bo
 
 /**
  * Get top users leaderboard (top 20 by playlist count)
+ * Only includes users with at least 1 playlist
  */
 export function getLeaderboard(limit: number = 20) {
   const stmt = db.prepare(`
@@ -457,7 +493,8 @@ export function getLeaderboard(limit: number = 20) {
       u.created_at
     FROM users u
     LEFT JOIN user_stats us ON u.id = us.user_id
-    ORDER BY COALESCE(us.total_playlists, 0) DESC
+    WHERE COALESCE(us.total_playlists, 0) > 0
+    ORDER BY COALESCE(us.total_playlists, 0) DESC, u.created_at ASC
     LIMIT ?
   `);
 
@@ -821,6 +858,126 @@ export function getSpotifyConnectionInfo(userId: number) {
     avatar: row.spotify_avatar,
     connectedAt: row.connected_at
   };
+}
+
+// ============================================
+// SPOTIFY LIBRARY FUNCTIONS
+// ============================================
+
+export interface SpotifyLibraryItem {
+  id?: number;
+  userId: number;
+  playlistId: string;
+  playlistName: string;
+  coverImage?: string;
+  trackCount: number;
+  ownerName?: string;
+  isPublic?: boolean;
+  spotifyUrl?: string;
+}
+
+/**
+ * Save a playlist to user's Playlistify library
+ */
+export function saveToSpotifyLibrary(item: SpotifyLibraryItem): boolean {
+  try {
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO spotify_library 
+      (user_id, playlist_id, playlist_name, cover_image, track_count, owner_name, is_public, spotify_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    stmt.run(
+      item.userId,
+      item.playlistId,
+      item.playlistName,
+      item.coverImage || null,
+      item.trackCount,
+      item.ownerName || null,
+      item.isPublic ? 1 : 0,
+      item.spotifyUrl || null
+    );
+    
+    console.log(`📚 Saved playlist "${item.playlistName}" to library for user ${item.userId}`);
+    return true;
+  } catch (error: any) {
+    console.error('❌ Failed to save to library:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Remove a playlist from user's Playlistify library
+ */
+export function removeFromSpotifyLibrary(userId: number, playlistId: string): boolean {
+  try {
+    const stmt = db.prepare(`
+      DELETE FROM spotify_library WHERE user_id = ? AND playlist_id = ?
+    `);
+    
+    const result = stmt.run(userId, playlistId);
+    
+    if (result.changes > 0) {
+      console.log(`🗑️ Removed playlist ${playlistId} from library for user ${userId}`);
+      return true;
+    }
+    return false;
+  } catch (error: any) {
+    console.error('❌ Failed to remove from library:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Get all saved playlists in user's Playlistify library
+ */
+export function getSpotifyLibrary(userId: number): SpotifyLibraryItem[] {
+  try {
+    const stmt = db.prepare(`
+      SELECT id, user_id as userId, playlist_id as playlistId, playlist_name as playlistName,
+             cover_image as coverImage, track_count as trackCount, owner_name as ownerName,
+             is_public as isPublic, spotify_url as spotifyUrl, created_at as createdAt
+      FROM spotify_library 
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+    `);
+    
+    return stmt.all(userId) as SpotifyLibraryItem[];
+  } catch (error: any) {
+    console.error('❌ Failed to get library:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Check if a playlist is in user's Playlistify library
+ */
+export function isInSpotifyLibrary(userId: number, playlistId: string): boolean {
+  try {
+    const stmt = db.prepare(`
+      SELECT 1 FROM spotify_library WHERE user_id = ? AND playlist_id = ?
+    `);
+    
+    return stmt.get(userId, playlistId) !== undefined;
+  } catch (error: any) {
+    return false;
+  }
+}
+
+/**
+ * Get count of saved playlists in user's library
+ */
+export function getSpotifyLibraryCount(userId: number): number {
+  try {
+    const stmt = db.prepare(`
+      SELECT COUNT(*) as count FROM spotify_library WHERE user_id = ?
+    `);
+    
+    const result = stmt.get(userId) as any;
+    return result?.count || 0;
+  } catch (error: any) {
+    return 0;
+  }
 }
 
 // Initialize database on module load

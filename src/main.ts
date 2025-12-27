@@ -24,13 +24,15 @@ import adminRoutes from "./routes/adminRoutes.js";
 import collabRoutes from "./routes/collabRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import spotifyOAuthRoutes from "./routes/spotifyOAuthRoutes.js";
+import spotifyLibraryRoutes from "./routes/spotifyLibraryRoutes.js";
 import authRoutes from "./auth.js";
 // Utils
 import { parsePlaylistIntent } from "./utils/nlpHelper.js";
 import { RateLimiter } from "./utils/rateLimiter.js";
 // Types & Database
 import { MCPRequest, MCPResponse, FeedbackAction } from "./types.js";
-import { incrementPlaylistCount, getLeaderboard } from "./database.js";
+import { incrementPlaylistCount, getLeaderboard, getUserStats, getUserById } from "./database.js";
+import db from "./database.js";
 
 const app = express();
 // Use Apify container port for Standby mode, fallback to PORT or 3001
@@ -54,6 +56,7 @@ app.use(bodyParser.json({ limit: '10mb' }));  // Allow larger payloads for audio
 // Mount API routes
 app.use("/api/payment", paymentRoutes);
 app.use("/api/spotify", spotifyOAuthRoutes);
+app.use("/api/spotify/library", spotifyLibraryRoutes);
 app.use("/auth", authRoutes);
 
 // Static files - index.html (landing page) will auto-serve at /
@@ -155,11 +158,53 @@ app.get("/health", (_req, res) => {
 });
 
 // Public leaderboard endpoint - supports ?all=true for full list
+// Also supports ?includeZero=true to include users with 0 playlists
+// Always fetches fresh data from database
 app.get("/api/leaderboard", (req: Request, res: Response) => {
   try {
     const showAll = req.query.all === 'true';
+    const includeZero = req.query.includeZero === 'true';
     const limit = showAll ? 1000 : 20; // 1000 is effectively "all"
-    const leaderboard = getLeaderboard(limit);
+    
+    // Always query fresh data from database
+    let leaderboard;
+    if (includeZero) {
+      // Get all users including those with 0 playlists
+      const stmt = db.prepare(`
+        SELECT 
+          u.id,
+          u.username,
+          u.display_name,
+          u.profile_picture,
+          COALESCE(us.total_playlists, 0) as playlist_count,
+          u.created_at
+        FROM users u
+        LEFT JOIN user_stats us ON u.id = us.user_id
+        ORDER BY COALESCE(us.total_playlists, 0) DESC, u.created_at ASC
+        LIMIT ?
+      `);
+      leaderboard = stmt.all(limit);
+    } else {
+      // Default: only users with playlists > 0, but ensure we get fresh data
+      const stmt = db.prepare(`
+        SELECT 
+          u.id,
+          u.username,
+          u.display_name,
+          u.profile_picture,
+          COALESCE(us.total_playlists, 0) as playlist_count,
+          u.created_at
+        FROM users u
+        LEFT JOIN user_stats us ON u.id = us.user_id
+        WHERE COALESCE(us.total_playlists, 0) > 0
+        ORDER BY COALESCE(us.total_playlists, 0) DESC, u.created_at ASC
+        LIMIT ?
+      `);
+      leaderboard = stmt.all(limit);
+    }
+    
+    console.log(`[API] Leaderboard fetched: ${leaderboard.length} users`);
+    
     res.json({
       success: true,
       data: leaderboard,
@@ -231,6 +276,19 @@ app.post("/api/generate-playlist", async (req: Request, res: Response) => {
   }
 
   try {
+    // If dbUserId is provided but userId is default, try to get username from database
+    if (dbUserId && userId === DEFAULT_USER_ID) {
+      try {
+        const user = getUserById(dbUserId);
+        if (user && user.username) {
+          userId = user.username;
+          console.log('[API] Using username from database:', userId);
+        }
+      } catch (e) {
+        console.log('[API] Could not get username from dbUserId:', e);
+      }
+    }
+
     console.log('[API] Generating agentic playlist:', { prompt, userId, dbUserId });
 
     const result = await generateAgenticPlaylist(userId, prompt, options);
@@ -528,15 +586,130 @@ app.get("/api/export-data", (req: Request, res: Response) => {
 });
 
 /**
+ * Get timeline playlists for a user
+ * Also checks database userId to find correct username if needed
+ */
+app.get("/api/timeline-playlists", (req: Request, res: Response) => {
+  let userId = (req.query.userId as string) || DEFAULT_USER_ID;
+  const dbUserId = req.query.dbUserId ? parseInt(req.query.dbUserId as string) : null;
+
+  try {
+    // If dbUserId is provided, always use the username from database
+    if (dbUserId) {
+      try {
+        const user = getUserById(dbUserId);
+        if (user && user.username) {
+          userId = user.username;
+          console.log(`[API] Using username ${userId} from database for timeline`);
+        }
+      } catch (e) {
+        console.log('[API] Could not get username from dbUserId:', e);
+      }
+    }
+
+    const userData = agentMemory.exportUserData(userId);
+    const playlists = userData?.recentPlaylists || [];
+    
+    console.log(`[API] Timeline playlists for userId ${userId}: ${playlists.length} playlists found`);
+    
+    console.log(`[API] Timeline playlists for userId ${userId}: ${playlists.length} playlists found`);
+
+    // Format playlists for timeline display
+    const timelinePlaylists = playlists.map(p => {
+      const date = new Date(p.timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      let dateStr = '';
+      if (diffDays === 0) {
+        dateStr = `Today, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      } else if (diffDays === 1) {
+        dateStr = `Yesterday, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      } else if (diffDays < 7) {
+        dateStr = `${diffDays} days ago`;
+      } else {
+        dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      const mood = p.intent?.parsedMood || p.characteristics?.dominantMood || 'neutral';
+      const genres = p.characteristics?.genres || [];
+      const genreStr = genres.length > 0 ? genres[0] : 'Unknown';
+
+      // Map mood to emoji
+      const moodEmojiMap: Record<string, string> = {
+        'happy': '😊', 'energetic': '🔥', 'calm': '😌', 'sad': '😢',
+        'focused': '🧘', 'romantic': '💜', 'excited': '✨', 'chill': '🌙',
+        'party': '🎉', 'workout': '💪', 'sleep': '😴', 'neutral': '😐',
+        'relaxed': '☕', 'intense': '💪'
+      };
+      const moodEmoji = moodEmojiMap[mood.toLowerCase()] || '😐';
+
+      return {
+        id: p.id,
+        date: dateStr,
+        title: p.playlistName,
+        description: p.intent?.rawPrompt || `A ${mood} playlist with ${p.trackCount} tracks`,
+        mood: mood,
+        moodEmoji: moodEmoji,
+        genre: genreStr,
+        trackCount: p.trackCount,
+        timestamp: p.timestamp
+      };
+    }).sort((a, b) => b.timestamp - a.timestamp); // Most recent first
+
+    res.json({
+      status: 'success',
+      data: { playlists: timelinePlaylists }
+    });
+  } catch (err: any) {
+    console.error('[API] Timeline playlists error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
  * Get personalized user stats for timeline page
  * Returns playlist count, track count, top genre, and top mood
+ * Also syncs with database stats if user is logged in
  */
 app.get("/api/user-stats", (req: Request, res: Response) => {
   const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+  const dbUserId = req.query.dbUserId ? parseInt(req.query.dbUserId as string) : null;
 
   try {
-    const stats = agentMemory.getUserStats(userId);
-    const userData = agentMemory.exportUserData(userId);
+    // Get stats from agentMemory
+    let stats = agentMemory.getUserStats(userId);
+    let userData = agentMemory.exportUserData(userId);
+    
+    // If user is logged in, also get stats from database and merge
+    let dbPlaylistCount = 0;
+    if (dbUserId) {
+      try {
+        const dbStats = getUserStats(dbUserId) as any;
+        dbPlaylistCount = dbStats?.total_playlists || dbStats?.playlist_count || 0;
+        console.log(`[API] Database stats for user ${dbUserId}: ${dbPlaylistCount} playlists`);
+        
+        // Also try to get username from dbUserId to check agentMemory with correct userId
+        const user = getUserById(dbUserId);
+        if (user && user.username) {
+          // If userId doesn't match username, try to get data with correct username
+          if (user.username !== userId) {
+            const correctStats = agentMemory.getUserStats(user.username);
+            const correctData = agentMemory.exportUserData(user.username);
+            if (correctStats.totalPlaylistsGenerated > 0 || (correctData?.recentPlaylists?.length || 0) > 0) {
+              console.log(`[API] Found agentMemory data for username: ${user.username}, using that instead`);
+              // Use the correct user data
+              stats = correctStats;
+              userData = correctData;
+              userId = user.username; // Update userId for consistency
+            }
+          }
+        }
+      } catch (e) {
+        console.log('[API] Could not get DB stats:', e);
+      }
+    }
 
     // Get top genre from genreAffinities
     let topGenre = 'None yet';
@@ -574,10 +747,20 @@ app.get("/api/user-stats", (req: Request, res: Response) => {
       });
     }
 
+    // Use database count if available and higher, otherwise use agentMemory count
+    // This ensures we show the correct count even if agentMemory hasn't synced yet
+    const finalPlaylistCount = Math.max(stats.totalPlaylistsGenerated || 0, dbPlaylistCount);
+    
+    // If database has more playlists but agentMemory has no data, use database count
+    // This handles the case where playlists exist in DB but not in agentMemory yet
+    if (dbPlaylistCount > 0 && (stats.totalPlaylistsGenerated || 0) === 0) {
+      console.log(`[API] Using database playlist count (${dbPlaylistCount}) for user ${userId}`);
+    }
+
     res.json({
       status: 'success',
       data: {
-        totalPlaylistsGenerated: stats.totalPlaylistsGenerated || 0,
+        totalPlaylistsGenerated: finalPlaylistCount,
         totalTracksLiked: stats.totalTracksLiked || 0,
         totalTracksSkipped: stats.totalTracksSkipped || 0,
         totalTracksDiscovered: totalTracks,
@@ -590,6 +773,241 @@ app.get("/api/user-stats", (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error('[API] User stats error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get weekly activity data for the last 4 weeks
+ */
+app.get("/api/weekly-activity", (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+
+  try {
+    const userData = agentMemory.exportUserData(userId);
+    const playlists = userData?.recentPlaylists || [];
+
+    // Calculate playlists per week for last 4 weeks
+    const now = Date.now();
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const weeks = [0, 0, 0, 0]; // W1, W2, W3, W4 (W4 is most recent)
+
+    playlists.forEach(playlist => {
+      const age = now - playlist.timestamp;
+      if (age < weekMs) weeks[3]++; // This week
+      else if (age < weekMs * 2) weeks[2]++; // Last week
+      else if (age < weekMs * 3) weeks[1]++; // 2 weeks ago
+      else if (age < weekMs * 4) weeks[0]++; // 3 weeks ago
+    });
+
+    // Calculate percentages (max is the highest week count, or 1 to avoid division by zero)
+    const maxCount = Math.max(...weeks, 1);
+    const percentages = weeks.map(count => Math.round((count / maxCount) * 100));
+
+    res.json({
+      status: 'success',
+      data: {
+        weeks: [
+          { label: 'W1', count: weeks[0], percentage: percentages[0] },
+          { label: 'W2', count: weeks[1], percentage: percentages[1] },
+          { label: 'W3', count: weeks[2], percentage: percentages[2] },
+          { label: 'W4', count: weeks[3], percentage: percentages[3] }
+        ]
+      }
+    });
+  } catch (err: any) {
+    console.error('[API] Weekly activity error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get genre breakdown with percentages
+ */
+app.get("/api/genre-breakdown", (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+
+  try {
+    const userData = agentMemory.exportUserData(userId);
+    const genreAffinities = userData?.tasteProfile?.genreAffinities || {};
+
+    if (Object.keys(genreAffinities).length === 0) {
+      res.json({
+        status: 'success',
+        data: { genres: [] }
+      });
+      return;
+    }
+
+    // Convert to array and sort by affinity
+    const genres = Object.entries(genreAffinities)
+      .filter(([_, score]) => (score as number) > 0)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
+      .slice(0, 10); // Top 10 genres
+
+    // Calculate percentages based on total affinity (sum of all scores)
+    const totalScore = genres.reduce((sum, [_, score]) => sum + (score as number), 0);
+    const genreData = genres.map(([genre, score]) => {
+      const scoreNum = score as number;
+      const percentage = totalScore > 0 ? Math.round((scoreNum / totalScore) * 100) : 0;
+      return {
+        name: genre.charAt(0).toUpperCase() + genre.slice(1),
+        percentage: percentage,
+        score: scoreNum
+      };
+    });
+
+    res.json({
+      status: 'success',
+      data: { genres: genreData }
+    });
+  } catch (err: any) {
+    console.error('[API] Genre breakdown error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get mood journey for the current month
+ */
+app.get("/api/mood-journey", (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+
+  try {
+    const userData = agentMemory.exportUserData(userId);
+    const playlists = userData?.recentPlaylists || [];
+
+    if (playlists.length === 0) {
+      res.json({
+        status: 'success',
+        data: { moods: [] }
+      });
+      return;
+    }
+
+    // Group playlists by week for current month
+    const now = Date.now();
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const weeks: { mood: string; emoji: string }[] = [];
+
+    // Get mood for each of the last 4 weeks
+    for (let i = 3; i >= 0; i--) {
+      const weekStart = now - (i + 1) * weekMs;
+      const weekEnd = now - i * weekMs;
+
+      const weekPlaylists = playlists.filter(p => 
+        p.timestamp >= weekStart && p.timestamp < weekEnd
+      );
+
+      let mood = 'neutral';
+      let emoji = '😐';
+
+      if (weekPlaylists.length > 0) {
+        // Get most common mood from this week's playlists
+        const moods = weekPlaylists
+          .map(p => p.intent?.parsedMood || p.characteristics?.dominantMood)
+          .filter(Boolean);
+        
+        if (moods.length > 0) {
+          // Count mood occurrences
+          const moodCounts: Record<string, number> = {};
+          moods.forEach(m => {
+            moodCounts[m] = (moodCounts[m] || 0) + 1;
+          });
+          
+          mood = Object.entries(moodCounts)
+            .sort((a, b) => b[1] - a[1])[0][0];
+        }
+      }
+
+      // Map mood to emoji
+      const moodEmojiMap: Record<string, string> = {
+        'happy': '😊', 'energetic': '🔥', 'calm': '😌', 'sad': '😢',
+        'focused': '🧘', 'romantic': '💜', 'excited': '✨', 'chill': '🌙',
+        'party': '🎉', 'workout': '💪', 'sleep': '😴', 'neutral': '😐'
+      };
+      emoji = moodEmojiMap[mood.toLowerCase()] || '😐';
+
+      weeks.push({ mood, emoji });
+    }
+
+    res.json({
+      status: 'success',
+      data: { moods: weeks }
+    });
+  } catch (err: any) {
+    console.error('[API] Mood journey error:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/**
+ * Get discovery score (how adventurous the user is)
+ */
+app.get("/api/discovery-score", (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+
+  try {
+    const userData = agentMemory.exportUserData(userId);
+    const playlists = userData?.recentPlaylists || [];
+    const genreAffinities = userData?.tasteProfile?.genreAffinities || {};
+
+    if (playlists.length === 0) {
+      res.json({
+        status: 'success',
+        data: {
+          score: 0,
+          level: 'New Explorer',
+          percentile: 0,
+          message: 'Create your first playlist to discover your music taste!'
+        }
+      });
+      return;
+    }
+
+    // Calculate discovery score based on:
+    // 1. Number of unique genres explored
+    // 2. Genre diversity (not just sticking to one genre)
+    // 3. Number of playlists created
+    const uniqueGenres = Object.keys(genreAffinities).length;
+    const totalPlaylists = playlists.length;
+    
+    // Score calculation (0-100)
+    // - Genre diversity: up to 50 points (more genres = higher score)
+    // - Activity: up to 30 points (more playlists = higher score)
+    // - Variety bonus: up to 20 points (if user explores different moods/energies)
+    
+    const genreScore = Math.min(uniqueGenres * 5, 50); // 10 genres = 50 points
+    const activityScore = Math.min(totalPlaylists * 2, 30); // 15 playlists = 30 points
+    
+    // Check for variety in moods/energies
+    const uniqueMoods = new Set(playlists.map(p => 
+      p.intent?.parsedMood || p.characteristics?.dominantMood
+    ).filter(Boolean));
+    const varietyScore = Math.min(uniqueMoods.size * 5, 20);
+    
+    const score = Math.round(genreScore + activityScore + varietyScore);
+    
+    // Determine level and percentile (mock percentile for now)
+    let level = 'New Explorer';
+    let percentile = 0;
+    if (score >= 80) { level = '🚀 Top Explorer'; percentile = 15; }
+    else if (score >= 60) { level = '🌟 Explorer'; percentile = 35; }
+    else if (score >= 40) { level = '🎵 Curious Listener'; percentile = 60; }
+    else if (score >= 20) { level = '🎧 Getting Started'; percentile = 80; }
+    else { level = '🌱 New Explorer'; percentile = 95; }
+
+    res.json({
+      status: 'success',
+      data: {
+        score,
+        level,
+        percentile,
+        message: `You've explored ${uniqueGenres} genres across ${totalPlaylists} playlists!`
+      }
+    });
+  } catch (err: any) {
+    console.error('[API] Discovery score error:', err);
     res.status(500).json({ status: 'error', message: err.message });
   }
 });

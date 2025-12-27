@@ -114,17 +114,20 @@
     }
 
     .collab-card {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      padding: 1.5rem;
-      transition: all 0.3s ease;
+      border-radius: 20px;
+      padding: 2rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
     .collab-card:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: var(--spotify-green);
-      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(29, 185, 84, 0.5);
+      transform: translateY(-6px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
     }
 
     .collab-card-header {
@@ -135,9 +138,10 @@
     }
 
     .collab-card-title {
-      font-size: 1.2rem;
-      font-weight: 600;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: var(--text-primary);
+      margin-bottom: 0.5rem;
     }
 
     .collab-status {
@@ -397,13 +401,25 @@
 
     /* Join by Code */
     .join-section {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed var(--border-subtle);
-      border-radius: 16px;
-      padding: 2rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2.5rem;
       text-align: center;
-      max-width: 500px;
+      max-width: 600px;
       margin: 0 auto;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .join-section h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .join-section h3 {
@@ -424,15 +440,23 @@
 
     .join-input {
       flex: 1;
-      padding: 1rem 1.25rem;
-      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem 1.5rem;
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-subtle);
       border-radius: 100px;
       color: var(--text-primary);
       font-size: 1rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 2px;
       text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .join-input:focus {
+      background: rgba(0, 0, 0, 0.5);
+      border-color: var(--spotify-green);
+      box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
     }
 
     .join-input:focus {
@@ -513,6 +537,12 @@
       </a>
     </div>
     <div class="nav-right">
+      <a href="spotify-library.html" class="spotify-library-btn" title="Spotify Library">
+        <svg class="spotify-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+        <span>Library</span>
+      </a>
       <div id="authButtonContainer"></div>
       <a href="apify.html" class="pro-button">
         <span class="pro-icon">⚡</span>
@@ -521,18 +551,18 @@
     </div>
   </nav>
 
-  <div class="page-container">
+  <div class="page-container page-slide-in">
     <section class="collab-hero">
-      <h1>🎧 Collaborative Playlists</h1>
+      <h1>Collaborative Playlists</h1>
       <p>Create playlists together with friends, family, or the community. Share your unique session code and build the
         perfect playlist in real-time.</p>
 
       <div class="collab-actions">
         <button class="collab-btn primary" onclick="openCreateModal()">
-          <span>✨</span> Start New Session
+          <span class="icon-gradient">Start New Session</span>
         </button>
         <button class="collab-btn secondary" onclick="scrollToJoin()">
-          <span>🔗</span> Join with Code
+          <span class="icon-gradient">Join with Code</span>
         </button>
       </div>
     </section>
@@ -540,7 +570,7 @@
     <!-- Active Collab Sessions -->
     <section class="collab-section">
       <div class="section-header">
-        <h2>🔥 Live Sessions</h2>
+        <h2>Live Sessions</h2>
       </div>
 
       <div class="collab-grid" id="liveSessionsGrid">
@@ -548,7 +578,7 @@
       </div>
 
       <div class="empty-state" id="noLiveSessions" style="display: none;">
-        <div class="icon">🎵</div>
+        <div class="icon-gradient" style="width: 64px; height: 64px; margin: 0 auto 1rem; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;"></div>
         <h3>No live sessions right now</h3>
         <p>Be the first to create one! Max 3 users per session.</p>
       </div>
@@ -557,7 +587,7 @@
     <!-- Join by Code Section -->
     <section class="collab-section" id="joinSection">
       <div class="join-section">
-        <h3>🔗 Have an Invite Code?</h3>
+        <h3>Have an Invite Code?</h3>
         <p>Enter the 6-character session code to join your friends (max 3 users per session)</p>
         <div class="join-input-group">
           <input type="text" class="join-input" placeholder="Enter code..." maxlength="6" id="joinCodeInput">
@@ -571,7 +601,7 @@
   <div class="modal-overlay" id="createModal">
     <div class="modal">
       <div class="modal-header">
-        <h3>✨ New Collab Session</h3>
+        <h3>New Collab Session</h3>
         <button class="modal-close" onclick="closeCreateModal()">×</button>
       </div>
 
@@ -656,8 +686,8 @@
                 <span class="collab-status live">LIVE</span>
               </div>
               <div class="collab-meta">
-                <span>👥 ${session.memberCount}/${session.maxMembers} members</span>
-                <span>💬 ${session.promptCount} prompts</span>
+                <span><i class="fas fa-users" style="margin-right: 0.3rem;"></i>${session.memberCount}/${session.maxMembers} members</span>
+                <span><i class="fas fa-comments" style="margin-right: 0.3rem;"></i>${session.promptCount} prompts</span>
               </div>
               <div class="collab-contributors">
                 <div class="contributor-avatar">${session.creatorName.charAt(0).toUpperCase()}</div>
@@ -824,6 +854,8 @@
 
   <!-- Auth Scripts -->
   <script src="userAuth.js"></script>
+  <script src="spotify-connect.js"></script>
+  <script src="spotify-popup.js"></script>
   <script src="auth-button.js"></script>
   <script>
     // Initialize auth button and check auth AFTER userAuth.js is loaded

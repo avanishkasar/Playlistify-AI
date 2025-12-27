@@ -29,7 +29,9 @@ const USER_SCOPES = [
     'user-read-email',
     'user-read-private',
     'playlist-modify-public',
-    'playlist-modify-private'
+    'playlist-modify-private',
+    'playlist-read-private',
+    'playlist-read-collaborative'
 ].join(' ');
 
 // PKCE helpers
@@ -45,6 +47,7 @@ function generateCodeChallenge(verifier: string): string {
 interface OAuthState {
     codeVerifier: string;
     userId: number | null;
+    returnUrl?: string;
 }
 const oauthStates = new Map<string, OAuthState>();
 
@@ -55,6 +58,7 @@ const oauthStates = new Map<string, OAuthState>();
  */
 router.get('/login', (req: Request, res: Response) => {
     const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+    const returnUrl = req.query.returnUrl as string | undefined;
 
     console.log(`🔐 Spotify OAuth login initiated for user: ${userId || 'anonymous'}`);
 
@@ -63,8 +67,8 @@ router.get('/login', (req: Request, res: Response) => {
     const codeChallenge = generateCodeChallenge(codeVerifier);
     const state = crypto.randomBytes(16).toString('hex');
 
-    // Store verifier + userId for callback
-    oauthStates.set(state, { codeVerifier, userId });
+    // Store verifier + userId + returnUrl for callback
+    oauthStates.set(state, { codeVerifier, userId, returnUrl });
 
     // Clean up old states after 10 minutes
     setTimeout(() => oauthStates.delete(state), 10 * 60 * 1000);
@@ -93,12 +97,24 @@ router.get('/oauth/callback', async (req: Request, res: Response): Promise<void>
 
     if (error) {
         console.error('❌ Spotify OAuth error:', error);
-        res.redirect(`${FRONTEND_URL}/app.html?spotify_error=${error}`);
+        // Try to get returnUrl from state if available
+        const oauthState = oauthStates.get(state as string);
+        const returnUrl = oauthState?.returnUrl;
+        const errorRedirect = returnUrl 
+            ? `${FRONTEND_URL}/${returnUrl}?spotify_error=${error}`
+            : `${FRONTEND_URL}/app.html?spotify_error=${error}`;
+        res.redirect(errorRedirect);
         return;
     }
 
     if (!code || !state) {
-        res.redirect(`${FRONTEND_URL}/app.html?spotify_error=missing_params`);
+        // Try to get returnUrl from state if available
+        const oauthState = oauthStates.get(state as string);
+        const returnUrl = oauthState?.returnUrl;
+        const errorRedirect = returnUrl 
+            ? `${FRONTEND_URL}/${returnUrl}?spotify_error=missing_params`
+            : `${FRONTEND_URL}/app.html?spotify_error=missing_params`;
+        res.redirect(errorRedirect);
         return;
     }
 
@@ -109,9 +125,9 @@ router.get('/oauth/callback', async (req: Request, res: Response): Promise<void>
         return;
     }
 
-    const { codeVerifier, userId } = oauthState;
+    const { codeVerifier, userId, returnUrl } = oauthState;
 
-    // Clean up used state
+    // Clean up used state (but keep returnUrl for error handling)
     oauthStates.delete(state as string);
 
     try {
@@ -133,7 +149,10 @@ router.get('/oauth/callback', async (req: Request, res: Response): Promise<void>
         if (!tokenResponse.ok) {
             const errorData = await tokenResponse.json();
             console.error('❌ Token exchange failed:', errorData);
-            res.redirect(`${FRONTEND_URL}/app.html?spotify_error=token_exchange_failed`);
+            const errorRedirect = returnUrl 
+                ? `${FRONTEND_URL}/${returnUrl}?spotify_error=token_exchange_failed`
+                : `${FRONTEND_URL}/app.html?spotify_error=token_exchange_failed`;
+            res.redirect(errorRedirect);
             return;
         }
 
@@ -172,8 +191,11 @@ router.get('/oauth/callback', async (req: Request, res: Response): Promise<void>
             saveSpotifyTokens(tokens);
             console.log(`💾 Saved Spotify tokens to DB for user ${userId}`);
 
-            // Redirect without tokens in URL (they're in DB now)
-            res.redirect(`${FRONTEND_URL}/app.html?spotify_connected=true&db_stored=true`);
+            // Redirect to returnUrl if specified, otherwise default to app.html
+            const redirectTo = returnUrl 
+                ? `${FRONTEND_URL}/${returnUrl}?spotify_connected=true&db_stored=true`
+                : `${FRONTEND_URL}/app.html?spotify_connected=true&db_stored=true`;
+            res.redirect(redirectTo);
         } else {
             // No userId - fallback to localStorage method (for anonymous users)
             const redirectUrl = `${FRONTEND_URL}/app.html?` + new URLSearchParams({
@@ -188,7 +210,11 @@ router.get('/oauth/callback', async (req: Request, res: Response): Promise<void>
 
     } catch (err: any) {
         console.error('❌ OAuth callback error:', err.message);
-        res.redirect(`${FRONTEND_URL}/app.html?spotify_error=auth_failed`);
+        // Use returnUrl from oauthState (already extracted before try block)
+        const errorRedirect = returnUrl 
+            ? `${FRONTEND_URL}/${returnUrl}?spotify_error=auth_failed`
+            : `${FRONTEND_URL}/app.html?spotify_error=auth_failed`;
+        res.redirect(errorRedirect);
     }
 });
 
@@ -530,6 +556,193 @@ router.post('/save-tokens', async (req: Request, res: Response): Promise<void> =
 });
 
 /**
+ * GET /api/spotify/user-playlists
+ * Get user's Spotify playlists
+ */
+router.get('/user-playlists', async (req: Request, res: Response): Promise<void> => {
+    const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+    let accessToken: string | null = null;
+
+    if (userId) {
+        accessToken = await refreshUserToken(userId);
+    }
+
+    if (!accessToken) {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            accessToken = authHeader.split(' ')[1];
+        }
+    }
+
+    if (!accessToken) {
+        res.status(401).json({ error: 'unauthorized', message: 'Access token required' });
+        return;
+    }
+
+    try {
+        const response = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) {
+            res.status(response.status).json({ error: 'spotify_api_error', message: 'Failed to fetch playlists' });
+            return;
+        }
+
+        const data = await response.json();
+        res.json({ playlists: data.items || [] });
+
+    } catch (err: any) {
+        console.error('❌ Fetch playlists error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
+    }
+});
+
+/**
+ * DELETE /api/spotify/delete-playlist
+ * Delete (unfollow) a playlist from user's Spotify
+ */
+router.delete('/delete-playlist', async (req: Request, res: Response): Promise<void> => {
+    const { userId, playlistId } = req.body;
+    let accessToken: string | null = null;
+
+    if (userId) {
+        accessToken = await refreshUserToken(parseInt(userId));
+    }
+
+    if (!accessToken) {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            accessToken = authHeader.split(' ')[1];
+        }
+    }
+
+    if (!accessToken) {
+        res.status(401).json({ error: 'unauthorized', message: 'Access token required' });
+        return;
+    }
+
+    if (!playlistId) {
+        res.status(400).json({ error: 'missing_playlist_id', message: 'Playlist ID is required' });
+        return;
+    }
+
+    try {
+        // Unfollow (delete) the playlist
+        const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/followers`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok && response.status !== 200) {
+            const errorData = await response.text();
+            console.error('❌ Delete playlist failed:', errorData);
+            res.status(response.status).json({ error: 'delete_failed', message: 'Failed to delete playlist' });
+            return;
+        }
+
+        console.log(`🗑️ Playlist ${playlistId} deleted successfully`);
+        res.json({ success: true, message: 'Playlist deleted' });
+
+    } catch (err: any) {
+        console.error('❌ Delete playlist error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
+    }
+});
+
+/**
+ * POST /api/spotify/save-credentials
+ * Save user's Spotify app credentials (client ID, secret, refresh token)
+ */
+router.post('/save-credentials', async (req: Request, res: Response): Promise<void> => {
+    const { userId, clientId, clientSecret, refreshToken } = req.body;
+
+    if (!userId || !refreshToken) {
+        res.status(400).json({ error: 'missing_params', message: 'userId and refreshToken are required' });
+        return;
+    }
+
+    try {
+        // Try to get an access token using the provided credentials
+        let accessToken = '';
+        let expiresAt = Date.now() + 3600000;
+
+        if (clientId && clientSecret && refreshToken) {
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64')
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        refresh_token: refreshToken
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    accessToken = data.access_token;
+                    expiresAt = Date.now() + (data.expires_in * 1000);
+                    console.log('✅ Validated credentials and got access token');
+                } else {
+                    res.status(400).json({ error: 'invalid_credentials', message: 'Could not authenticate with provided credentials' });
+                    return;
+                }
+            } catch (e) {
+                console.error('Failed to validate credentials:', e);
+                res.status(400).json({ error: 'validation_failed', message: 'Failed to validate credentials' });
+                return;
+            }
+        }
+
+        // Fetch Spotify profile
+        let spotifyProfile: any = null;
+        if (accessToken) {
+            try {
+                const profileResponse = await fetch('https://api.spotify.com/v1/me', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (profileResponse.ok) {
+                    spotifyProfile = await profileResponse.json();
+                }
+            } catch (e) {
+                console.log('⚠️ Could not fetch Spotify profile');
+            }
+        }
+
+        // Save tokens
+        const tokens: SpotifyTokens = {
+            userId: parseInt(userId),
+            accessToken,
+            refreshToken,
+            expiresAt,
+            spotifyUserId: spotifyProfile?.id,
+            spotifyDisplayName: spotifyProfile?.display_name,
+            spotifyEmail: spotifyProfile?.email,
+            spotifyAvatar: spotifyProfile?.images?.[0]?.url
+        };
+
+        saveSpotifyTokens(tokens);
+
+        res.json({
+            success: true,
+            message: 'Spotify connected successfully',
+            profile: spotifyProfile ? {
+                displayName: spotifyProfile.display_name,
+                email: spotifyProfile.email,
+                avatar: spotifyProfile.images?.[0]?.url
+            } : null
+        });
+
+    } catch (err: any) {
+        console.error('❌ Save credentials error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Failed to save credentials' });
+    }
+});
+
+/**
  * GET /api/spotify/status
  * Check if OAuth endpoints are available
  */
@@ -544,7 +757,10 @@ router.get('/status', (_req: Request, res: Response) => {
             disconnect: '/api/spotify/disconnect',
             refresh: '/api/spotify/refresh',
             me: '/api/spotify/me?userId=XXX',
-            createPlaylist: '/api/spotify/create-playlist'
+            createPlaylist: '/api/spotify/create-playlist',
+            userPlaylists: '/api/spotify/user-playlists?userId=XXX',
+            deletePlaylist: '/api/spotify/delete-playlist',
+            saveCredentials: '/api/spotify/save-credentials'
         }
     });
 });

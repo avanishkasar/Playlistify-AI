@@ -4,7 +4,8 @@
  */
 
 import express, { Request, Response } from "express";
-import { createUser, authenticateUser, getUserById, getUserPlaylists, getUserStats, User, updateProfilePicture, updateDisplayName, updateUsername, updatePassword } from "../database.js";
+import { createUser, authenticateUser, getUserById, getUserPlaylists, getUserStats, User, updateProfilePicture, updateDisplayName, updateUsername, updatePassword, hashPassword } from "../database.js";
+import db from "../database.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -141,6 +142,63 @@ router.post('/login', (req: Request, res: Response): void => {
     res.status(500).json({
       error: 'login_failed',
       message: 'An error occurred during login'
+    });
+  }
+});
+
+/**
+ * Forgot Password - Reset password using username and email
+ */
+router.post('/forgot-password', (req: Request, res: Response): void => {
+  const { username, email, newPassword } = req.body;
+
+  if (!username || !email || !newPassword) {
+    res.status(400).json({
+      error: 'missing_fields',
+      message: 'Username, email, and new password are required'
+    });
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    res.status(400).json({
+      error: 'weak_password',
+      message: 'Password must be at least 6 characters'
+    });
+    return;
+  }
+
+  try {
+    // Verify user exists with matching username and email
+    const stmt = db.prepare(`
+      SELECT id FROM users WHERE username = ? AND email = ?
+    `);
+    const user = stmt.get(username, email) as { id: number } | undefined;
+
+    if (!user) {
+      res.status(404).json({
+        error: 'user_not_found',
+        message: 'No account found with that username and email combination'
+      });
+      return;
+    }
+
+    // Update password
+    const passwordHash = hashPassword(newPassword);
+    const updateStmt = db.prepare(`
+      UPDATE users SET password_hash = ? WHERE id = ?
+    `);
+    updateStmt.run(passwordHash, user.id);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now sign in with your new password.'
+    });
+  } catch (error: any) {
+    console.error('[Auth] Forgot password error:', error);
+    res.status(500).json({
+      error: 'reset_failed',
+      message: 'An error occurred during password reset'
     });
   }
 });

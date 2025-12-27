@@ -479,19 +479,23 @@
 
       <div class="pricing-grid">
         <!-- Download Feature -->
-        <div class="pricing-card featured">
+        <div class="pricing-card featured" style="position: relative; filter: blur(2px); pointer-events: none;">
           <div class="pricing-badge">Popular</div>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 1rem 2rem; border-radius: 12px; border: 2px solid var(--spotify-green);">
+            <div class="coming-soon-badge" style="margin-bottom: 0.5rem;">Coming Soon</div>
+            <p style="color: var(--text-primary); font-size: 0.9rem; margin: 0;">This feature is under development</p>
+          </div>
           <div class="pricing-icon">📥</div>
           <h3 class="pricing-title">Playlist Download</h3>
           <p class="pricing-desc">Download your generated playlists as MP3 files</p>
-          <div class="pricing-amount">₹42 <span>/ 24 hours</span></div>
+          <div class="pricing-amount" style="filter: blur(4px);">$0.5 <span>/ month</span></div>
           <ul class="pricing-features">
             <li>320kbps high-quality MP3</li>
             <li>JioSaavn song library</li>
             <li>Batch download entire playlists</li>
-            <li>Unlimited downloads for 24 hours</li>
+            <li>Unlimited downloads for 1 month</li>
           </ul>
-          <button class="buy-btn" onclick="startPayment('download')">
+          <button class="buy-btn" style="opacity: 0.5;">
             <span>⚡</span> Pay with UPI
           </button>
         </div>
@@ -501,25 +505,63 @@
           <div class="pricing-icon">🤖</div>
           <h3 class="pricing-title">Apify Automation</h3>
           <p class="pricing-desc">Access the full Apify Actor for automation</p>
-          <div class="pricing-amount">₹84 <span>/ lifetime</span></div>
+          <div class="pricing-amount">$1 <span>/ access</span></div>
           <ul class="pricing-features">
             <li>Full Apify Actor access code</li>
             <li>Create playlists in YOUR Spotify</li>
             <li>API access for developers</li>
             <li>Scheduled playlist generation</li>
           </ul>
-          <button class="buy-btn" onclick="startPayment('apify')">
-            <span>⚡</span> Pay with UPI
-          </button>
+          <a href="https://apify.com/viverun/playlistfy" target="_blank" class="buy-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+            <span>🚀</span> View on Apify
+          </a>
         </div>
       </div>
 
-      <!-- Apple Music Coming Soon -->
-      <div class="coming-soon-section">
-        <div class="coming-soon-badge">🍎 Coming Soon</div>
-        <h3>Apple Music Integration</h3>
-        <p>We're working on Apple Music support using MusicKit API. Create playlists directly in your Apple Music
-          library!</p>
+      <!-- Other Music Platforms -->
+      <h2 class="section-title" style="margin-top: 3rem;">Coming Soon - Other Platforms</h2>
+      <div class="pricing-grid" style="margin-top: 2rem;">
+        <!-- Apple Music -->
+        <div class="pricing-card" style="position: relative; filter: blur(2px); pointer-events: none;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 1rem 2rem; border-radius: 12px; border: 2px solid #fa233b;">
+            <div class="coming-soon-badge" style="background: linear-gradient(135deg, #fa233b 0%, #ff6b6b 100%); margin-bottom: 0.5rem;">Coming Soon</div>
+            <p style="color: var(--text-primary); font-size: 0.9rem; margin: 0;">This feature is under development</p>
+          </div>
+          <div class="pricing-icon">🍎</div>
+          <h3 class="pricing-title">Apple Music</h3>
+          <p class="pricing-desc">Create and manage playlists in your Apple Music library</p>
+          <div class="pricing-amount" style="filter: blur(4px);">$0.5 <span>/ month</span></div>
+          <ul class="pricing-features">
+            <li>MusicKit API integration</li>
+            <li>Direct playlist creation</li>
+            <li>Sync with iCloud Music Library</li>
+            <li>Full library management</li>
+          </ul>
+          <button class="buy-btn" style="opacity: 0.5;">
+            <span>🍎</span> Coming Soon
+          </button>
+        </div>
+
+        <!-- YouTube Music -->
+        <div class="pricing-card" style="position: relative; filter: blur(2px); pointer-events: none;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 1rem 2rem; border-radius: 12px; border: 2px solid #ff0000;">
+            <div class="coming-soon-badge" style="background: linear-gradient(135deg, #ff0000 0%, #ff4444 100%); margin-bottom: 0.5rem;">Coming Soon</div>
+            <p style="color: var(--text-primary); font-size: 0.9rem; margin: 0;">This feature is under development</p>
+          </div>
+          <div class="pricing-icon">🎵</div>
+          <h3 class="pricing-title">YouTube Music</h3>
+          <p class="pricing-desc">Sync playlists with your YouTube Music account</p>
+          <div class="pricing-amount" style="filter: blur(4px);">$0.5 <span>/ month</span></div>
+          <ul class="pricing-features">
+            <li>YouTube Data API v3</li>
+            <li>Create playlists in YouTube Music</li>
+            <li>Access to YouTube's music library</li>
+            <li>Cross-platform sync</li>
+          </ul>
+          <button class="buy-btn" style="opacity: 0.5;">
+            <span>🎵</span> Coming Soon
+          </button>
+        </div>
       </div>
     </section>
   </main>
@@ -631,6 +673,12 @@
 
     // Start payment flow
     async function startPayment(productType) {
+      // If Apify, redirect to actor page
+      if (productType === 'apify') {
+        window.open('https://apify.com/viverun/playlistfy', '_blank');
+        return;
+      }
+
       const modal = document.getElementById('paymentModal');
       const title = document.getElementById('modalTitle');
       const desc = document.getElementById('modalDesc');
@@ -647,12 +695,8 @@
       // Set modal content
       if (productType === 'download') {
         title.textContent = 'Unlock Playlist Downloads';
-        desc.textContent = 'Pay via UPI to download playlists for 24 hours';
-        amountEl.textContent = '₹42';
-      } else {
-        title.textContent = 'Get Apify Automation';
-        desc.textContent = 'Pay via UPI for lifetime Apify Actor access';
-        amountEl.textContent = '₹84';
+        desc.textContent = 'Pay via UPI to download playlists for 1 month';
+        amountEl.textContent = '$0.5';
       }
 
       modal.classList.add('active');

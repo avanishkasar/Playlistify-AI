@@ -47,13 +47,12 @@
       </a>
     </div>
     <div class="nav-right">
-      <button class="spotify-connect-btn" title="Connect your Spotify account">
-        <svg class="spotify-icon" viewBox="0 0 24 24" width="18" height="18">
-          <path fill="currentColor"
-            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+      <a href="spotify-library.html" class="spotify-library-btn" title="Spotify Library">
+        <svg class="spotify-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
         </svg>
-        <span>Connect Spotify</span>
-      </button>
+        <span>Library</span>
+      </a>
       <div id="authButtonContainer"></div>
       <a href="apify.html" class="pro-button">
         <span class="pro-icon">⚡</span>
@@ -62,27 +61,27 @@
     </div>
   </nav>
 
-  <main class="page-main">
+  <main class="page-main page-slide-in">
     <!-- Leaderboard Section -->
     <section class="content-section" style="margin-bottom: 2rem;">
-      <h2 class="section-title">🏆 Top Playlist Creators</h2>
+      <h2 class="section-title">Top Playlist Creators</h2>
       <p class="section-desc">Users who have generated the most playlists this week!</p>
 
       <div class="leaderboard-container">
         <!-- Winner Spotlight -->
         <div id="winner-spotlight" class="winner-spotlight glass-card" style="display: none;">
-          <div class="winner-crown">👑</div>
+          <div class="winner-crown"><i class="fas fa-crown"></i></div>
           <div class="winner-avatar">
             <div class="winner-glow"></div>
             <span class="winner-rank">1</span>
           </div>
           <div class="winner-info">
-            <span class="winner-label">🎉 Winner of the Week 🎉</span>
+            <span class="winner-label"><i class="fas fa-trophy"></i> Winner of the Week <i class="fas fa-trophy"></i></span>
             <h3 id="winner-name" class="winner-name">Loading...</h3>
             <p id="winner-count" class="winner-count">0 Playlists Generated</p>
           </div>
           <div class="winner-confetti">
-            <span>🎊</span><span>✨</span><span>🎵</span><span>🎶</span><span>⭐</span>
+            <span><i class="fas fa-trophy"></i></span><span><i class="fas fa-star"></i></span><span><i class="fas fa-music"></i></span><span><i class="fas fa-award"></i></span><span><i class="fas fa-crown"></i></span>
           </div>
         </div>
 
@@ -98,6 +97,11 @@
               <div class="loading-spinner"></div>
               <p>Loading leaderboard...</p>
             </div>
+          </div>
+          <div class="leaderboard-footer" style="padding: 1rem; text-align: center; border-top: 1px solid var(--border-subtle);">
+            <button id="viewAllBtn" class="view-all-btn" onclick="toggleViewAll()" style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 0.75rem 2rem; border-radius: 100px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+              <i class="fas fa-chevron-down" style="margin-right: 0.5rem;"></i> View All
+            </button>
           </div>
         </div>
       </div>
@@ -438,69 +442,131 @@
 
   <script src="cursor.js"></script>
   <script>
+    // Leaderboard state
+    let showingAll = false;
+    let allLeaderboardData = [];
+
+    // Toggle view all
+    function toggleViewAll() {
+      showingAll = !showingAll;
+      renderLeaderboard(allLeaderboardData, showingAll);
+      updateViewAllButton();
+    }
+
+    // Update view all button
+    function updateViewAllButton() {
+      const btn = document.getElementById('viewAllBtn');
+      if (btn) {
+        const icon = btn.querySelector('i');
+        const text = btn.querySelector('span') || btn.childNodes[btn.childNodes.length - 1];
+        if (showingAll) {
+          if (icon) icon.className = 'fas fa-chevron-up';
+          if (text && text.textContent) text.textContent = ' Show Less';
+          btn.innerHTML = '<i class="fas fa-chevron-up" style="margin-right: 0.5rem;"></i> Show Less';
+        } else {
+          if (icon) icon.className = 'fas fa-chevron-down';
+          if (text && text.textContent) text.textContent = ' View All';
+          btn.innerHTML = '<i class="fas fa-chevron-down" style="margin-right: 0.5rem;"></i> View All';
+        }
+      }
+    }
+
+    // Render leaderboard
+    function renderLeaderboard(users, showAll = false) {
+      const leaderboardItems = document.getElementById('leaderboard-items');
+      const usersToShow = showAll ? users : users.slice(0, 10);
+
+      if (usersToShow.length === 0) {
+        leaderboardItems.innerHTML = `
+          <div class="leaderboard-empty">
+            <div class="leaderboard-empty-icon"><i class="fas fa-music"></i></div>
+            <p>No playlists generated yet! Be the first to create one and claim the top spot!</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Build leaderboard items
+      let html = '';
+      usersToShow.forEach((user, index) => {
+        const rank = index + 1;
+        const rankClass = rank <= 3 ? `rank-${rank}` : '';
+        const displayName = user.display_name || user.username || 'Anonymous';
+        const username = user.username || 'User';
+
+        html += `
+          <div class="leaderboard-item ${rankClass}">
+            <div class="lb-rank-badge">${rank}</div>
+            <div class="lb-user-info">
+              <span class="lb-username">${displayName}</span>
+              <span class="lb-display-name">@${username}</span>
+            </div>
+            <div class="lb-playlist-count">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18V5l12-2v13"></path>
+                <circle cx="6" cy="18" r="3"></circle>
+                <circle cx="18" cy="16" r="3"></circle>
+              </svg>
+              ${user.playlist_count}
+            </div>
+          </div>
+        `;
+      });
+
+      leaderboardItems.innerHTML = html;
+    }
+
     // Fetch and display leaderboard
     async function loadLeaderboard() {
       const leaderboardItems = document.getElementById('leaderboard-items');
       const winnerSpotlight = document.getElementById('winner-spotlight');
 
       try {
-        const response = await fetch('/api/leaderboard');
+        // Fetch all users including those with 0 playlists
+        const response = await fetch('/api/leaderboard?all=true&includeZero=true');
         const result = await response.json();
 
         if (!result.success || !result.data || result.data.length === 0) {
           leaderboardItems.innerHTML = `
             <div class="leaderboard-empty">
-              <div class="leaderboard-empty-icon">🎵</div>
+              <div class="leaderboard-empty-icon"><i class="fas fa-music"></i></div>
               <p>No playlists generated yet! Be the first to create one and claim the top spot!</p>
             </div>
           `;
+          // Hide view all button if no data
+          const btn = document.getElementById('viewAllBtn');
+          if (btn) btn.style.display = 'none';
           return;
         }
 
-        const users = result.data.slice(0, 10); // Show top 10
+        allLeaderboardData = result.data;
 
         // Show winner spotlight if there's at least one user
-        if (users.length > 0) {
-          const winner = users[0];
+        if (allLeaderboardData.length > 0) {
+          const winner = allLeaderboardData[0];
           winnerSpotlight.style.display = 'flex';
           document.getElementById('winner-name').textContent = winner.display_name || winner.username || 'Anonymous';
           document.getElementById('winner-count').innerHTML = `<strong>${winner.playlist_count}</strong> Playlists Generated`;
         }
 
-        // Build leaderboard items
-        let html = '';
-        users.forEach((user, index) => {
-          const rank = index + 1;
-          const rankClass = rank <= 3 ? `rank-${rank}` : '';
-          const displayName = user.display_name || user.username || 'Anonymous';
-          const username = user.username || 'User';
+        // Show/hide view all button based on data count
+        const btn = document.getElementById('viewAllBtn');
+        if (btn) {
+          if (allLeaderboardData.length > 10) {
+            btn.style.display = 'block';
+          } else {
+            btn.style.display = 'none';
+          }
+        }
 
-          html += `
-            <div class="leaderboard-item ${rankClass}">
-              <div class="lb-rank-badge">${rank}</div>
-              <div class="lb-user-info">
-                <span class="lb-username">${displayName}</span>
-                <span class="lb-display-name">@${username}</span>
-              </div>
-              <div class="lb-playlist-count">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 18V5l12-2v13"></path>
-                  <circle cx="6" cy="18" r="3"></circle>
-                  <circle cx="18" cy="16" r="3"></circle>
-                </svg>
-                ${user.playlist_count}
-              </div>
-            </div>
-          `;
-        });
-
-        leaderboardItems.innerHTML = html;
+        // Render initial view (top 10)
+        renderLeaderboard(allLeaderboardData, showingAll);
 
       } catch (error) {
         console.error('Error loading leaderboard:', error);
         leaderboardItems.innerHTML = `
           <div class="leaderboard-empty">
-            <div class="leaderboard-empty-icon">⚠️</div>
+            <div class="leaderboard-empty-icon"><i class="fas fa-exclamation-triangle"></i></div>
             <p>Unable to load leaderboard. Please try again later.</p>
           </div>
         `;
@@ -534,6 +600,7 @@
   </script>
   <script src="userAuth.js"></script>
   <script src="spotify-connect.js"></script>
+  <script src="spotify-popup.js"></script>
   <script src="auth-button.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {

@@ -5,9 +5,9 @@
  * 
  * Usage:
  * 1. Replace CLIENT_ID and CLIENT_SECRET with your actual credentials
- * 2. Make sure redirect URI matches your Spotify app settings
+ * 2. Make sure redirect URI (http://127.0.0.1:8888/callback) is added to your Spotify app settings
  * 3. Run: node spotify-auth-helper.js
- * 4. Open http://localhost:8888/login in your browser
+ * 4. Open http://127.0.0.1:8888/login in your browser
  * 5. Authorize the app
  * 6. Copy the refresh token from the terminal or browser
  */
@@ -18,7 +18,7 @@ const SpotifyWebApi = require('spotify-web-api-node');
 // ⚠️ REPLACE THESE WITH YOUR ACTUAL CREDENTIALS
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || 'YOUR_CLIENT_ID_HERE';
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || 'YOUR_CLIENT_SECRET_HERE';
-const REDIRECT_URI = 'http://localhost:8888/callback';
+const REDIRECT_URI = 'http://127.0.0.1:8888/callback';
 
 // Check if credentials are set
 if (CLIENT_ID === 'YOUR_CLIENT_ID_HERE' || CLIENT_SECRET === 'YOUR_CLIENT_SECRET_HERE') {
@@ -35,14 +35,14 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: REDIRECT_URI
 });
 
-// Scopes needed for your Apify actor
+// Scopes needed for Playlistify AI
 const scopes = [
-  'playlist-modify-public',    // Create and modify public playlists
-  'playlist-modify-private',   // Create and modify private playlists
-  'playlist-read-private',     // Read private playlists
-  'user-library-read',         // Access user's library
-  'user-read-private',         // Read user profile
-  'user-read-email'            // Read user email
+  'user-read-email',              // Read user email
+  'user-read-private',            // Read user profile
+  'playlist-modify-public',       // Create and modify public playlists
+  'playlist-modify-private',      // Create and modify private playlists
+  'playlist-read-private',        // Read private playlists
+  'playlist-read-collaborative'   // Read collaborative playlists
 ];
 
 const app = express();
@@ -284,7 +284,7 @@ app.get('/', (req, res) => {
         <div class="warning">
           <strong>⚠️ Before you start:</strong><br>
           Make sure you've added this redirect URI to your Spotify app:<br>
-          <code>http://localhost:8888/callback</code>
+          <code>http://127.0.0.1:8888/callback</code>
         </div>
         
         <h3>📋 Instructions:</h3>
@@ -319,14 +319,14 @@ app.listen(PORT, () => {
   console.log('   Client ID:', CLIENT_ID);
   console.log('   Client Secret:', CLIENT_SECRET.substring(0, 10) + '...');
   console.log('   Redirect URI:', REDIRECT_URI);
-  console.log('\n🚀 Server started on http://localhost:' + PORT);
+  console.log('\n🚀 Server started on http://127.0.0.1:' + PORT);
   console.log('\n📝 Next steps:');
   console.log('   1. Open this URL in your browser:');
-  console.log('      \x1b[36mhttp://localhost:' + PORT + '/login\x1b[0m');
+  console.log('      \x1b[36mhttp://127.0.0.1:' + PORT + '/login\x1b[0m');
   console.log('   2. Log in with your Spotify account');
   console.log('   3. Authorize the app');
   console.log('   4. Copy the refresh token');
-  console.log('\n⚠️  Make sure http://localhost:8888/callback is in your');
+  console.log('\n⚠️  Make sure http://127.0.0.1:8888/callback is in your');
   console.log('   Spotify app\'s redirect URIs!');
   console.log('='.repeat(80) + '\n');
 });

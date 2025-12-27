@@ -344,6 +344,9 @@
                         <i class="fas fa-lock"></i> Password
                     </label>
                     <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    <div style="text-align: right; margin-top: 0.5rem;">
+                        <a href="#" id="showForgotPassword" style="color: var(--spotify-green); text-decoration: none; font-size: 0.85rem; font-weight: 500;">Forgot Password?</a>
+                    </div>
                 </div>
                 
                 <button type="submit" class="submit-btn">
@@ -354,6 +357,40 @@
                 <p class="form-switch">
                     Don't have an account? 
                     <a href="#" id="showSignup">Create one</a>
+                </p>
+            </form>
+            
+            <!-- Forgot Password Form (Hidden by default) -->
+            <form id="forgotPasswordForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="forgotUsername">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text" id="forgotUsername" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="forgotEmail">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" id="forgotEmail" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newPassword">
+                        <i class="fas fa-lock"></i> New Password
+                    </label>
+                    <input type="password" id="newPassword" placeholder="Enter new password (min 6 chars)" required minlength="6">
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-key"></i>
+                    <span>Reset Password</span>
+                </button>
+                
+                <p class="form-switch">
+                    Remember your password? 
+                    <a href="#" id="showLoginFromForgot">Sign in</a>
                 </p>
             </form>
             
@@ -432,8 +469,11 @@
         // Form switching
         const loginForm = document.getElementById('loginForm');
         const signupForm = document.getElementById('signupForm');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
         const showSignup = document.getElementById('showSignup');
         const showLogin = document.getElementById('showLogin');
+        const showForgotPassword = document.getElementById('showForgotPassword');
+        const showLoginFromForgot = document.getElementById('showLoginFromForgot');
         const formTitle = document.getElementById('formTitle');
         const formSubtitle = document.getElementById('formSubtitle');
         const errorMessage = document.getElementById('errorMessage');
@@ -441,6 +481,7 @@
         showSignup.addEventListener('click', (e) => {
             e.preventDefault();
             loginForm.style.display = 'none';
+            forgotPasswordForm.style.display = 'none';
             signupForm.style.display = 'flex';
             formTitle.innerHTML = 'Create <span class="highlight">Account</span>';
             formSubtitle.textContent = 'Join Playlistify AI and start your journey';
@@ -450,6 +491,27 @@
         showLogin.addEventListener('click', (e) => {
             e.preventDefault();
             signupForm.style.display = 'none';
+            forgotPasswordForm.style.display = 'none';
+            loginForm.style.display = 'flex';
+            formTitle.innerHTML = 'Welcome <span class="highlight">Back</span>';
+            formSubtitle.textContent = 'Sign in to continue creating amazing playlists';
+            errorMessage.style.display = 'none';
+        });
+
+        showForgotPassword.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'none';
+            forgotPasswordForm.style.display = 'flex';
+            formTitle.innerHTML = 'Reset <span class="highlight">Password</span>';
+            formSubtitle.textContent = 'Enter your username and email to reset your password';
+            errorMessage.style.display = 'none';
+        });
+
+        showLoginFromForgot.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupForm.style.display = 'none';
+            forgotPasswordForm.style.display = 'none';
             loginForm.style.display = 'flex';
             formTitle.innerHTML = 'Welcome <span class="highlight">Back</span>';
             formSubtitle.textContent = 'Sign in to continue creating amazing playlists';
@@ -535,6 +597,59 @@
                     showError(data.message || 'Login failed. Please try again.');
                 }
             } catch (error) {
+                showError('Connection error. Please try again.');
+            }
+        });
+
+        // Forgot Password form submission
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('forgotUsername').value;
+            const email = document.getElementById('forgotEmail').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            if (newPassword.length < 6) {
+                showError('Password must be at least 6 characters.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showError(''); // Clear error
+                    errorMessage.style.background = 'rgba(29, 185, 84, 0.1)';
+                    errorMessage.style.borderColor = 'rgba(29, 185, 84, 0.3)';
+                    errorMessage.style.color = '#4ade80';
+                    errorMessage.textContent = 'Password reset successfully! Redirecting to login...';
+                    errorMessage.style.display = 'block';
+                    
+                    // Reset form
+                    forgotPasswordForm.reset();
+                    
+                    // Redirect to login after 2 seconds
+                    setTimeout(() => {
+                        showLoginFromForgot.click();
+                        errorMessage.style.background = 'rgba(239, 68, 68, 0.1)';
+                        errorMessage.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                        errorMessage.style.color = '#f87171';
+                    }, 2000);
+                } else {
+                    errorMessage.style.background = 'rgba(239, 68, 68, 0.1)';
+                    errorMessage.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    errorMessage.style.color = '#f87171';
+                    showError(data.message || 'Password reset failed. Please check your username and email.');
+                }
+            } catch (error) {
+                errorMessage.style.background = 'rgba(239, 68, 68, 0.1)';
+                errorMessage.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                errorMessage.style.color = '#f87171';
                 showError('Connection error. Please try again.');
             }
         });

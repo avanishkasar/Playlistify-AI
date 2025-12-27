@@ -2616,6 +2616,50 @@
   color: var(--text-muted);
 }
 
+/* ===== SPOTIFY LIBRARY BUTTON ===== */
+.spotify-library-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, #1DB954 0%, #1ed760 50%, #1DB954 100%);
+  background-size: 200% 200%;
+  border: none;
+  border-radius: 100px;
+  color: #000;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+  animation: spotifyGradient 3s ease infinite;
+}
+
+@keyframes spotifyGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.spotify-library-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(29, 185, 84, 0.5);
+}
+
+.spotify-library-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.spotify-library-btn .spotify-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+.spotify-library-btn span {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
 /* ===== SPOTIFY CONNECT BUTTON ===== */
 .spotify-connect-btn {
   display: flex;
@@ -2763,4 +2807,156 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ===== SPOTIFY CONNECT POPUP ===== */
+.spotify-connect-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 10003;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.spotify-connect-popup {
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  animation: popupSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 25px 80px rgba(29, 185, 84, 0.15), 0 0 60px rgba(29, 185, 84, 0.1);
+}
+
+@keyframes popupSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.spotify-connect-popup .popup-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.spotify-connect-popup .popup-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.spotify-connect-popup .popup-icon {
+  margin-bottom: 1.5rem;
+  animation: spotifyPulse 2s ease-in-out infinite;
+}
+
+@keyframes spotifyPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.spotify-connect-popup h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.spotify-connect-popup > p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.spotify-connect-popup .popup-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(29, 185, 84, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(29, 185, 84, 0.1);
+}
+
+.spotify-connect-popup .popup-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.spotify-connect-popup .popup-feature .feature-icon {
+  font-size: 1.2rem;
+}
+
+.spotify-connect-popup .popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.spotify-connect-popup .popup-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.spotify-connect-popup .popup-btn.primary {
+  background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+  color: #000;
+  box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+}
+
+.spotify-connect-popup .popup-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(29, 185, 84, 0.5);
+}
+
+.spotify-connect-popup .popup-btn.secondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.spotify-connect-popup .popup-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
 }
