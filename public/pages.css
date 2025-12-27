@@ -2615,3 +2615,152 @@
   padding: 2rem;
   color: var(--text-muted);
 }
+
+/* ===== SPOTIFY CONNECT BUTTON ===== */
+.spotify-connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(29, 185, 84, 0.15);
+  border: 1px solid rgba(29, 185, 84, 0.4);
+  border-radius: 100px;
+  color: #1DB954;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.spotify-connect-btn:hover {
+  background: rgba(29, 185, 84, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.2);
+}
+
+.spotify-connect-btn.connected {
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.2), rgba(29, 185, 84, 0.1));
+  border-color: rgba(29, 185, 84, 0.6);
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+}
+
+.spotify-connect-btn .spotify-icon {
+  flex-shrink: 0;
+}
+
+.spotify-connect-btn .spotify-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1DB954;
+}
+
+.spotify-connect-btn .spotify-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotify-connect-btn .spotify-badge {
+  background: #1DB954;
+  color: #000;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+/* Spotify Modal */
+.spotify-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.spotify-modal {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+}
+
+.spotify-modal h3 {
+  color: #1DB954;
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+
+.spotify-modal p {
+  color: var(--text-secondary);
+  margin: 0.5rem 0;
+}
+
+.spotify-modal .modal-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(29, 185, 84, 0.1);
+  border-radius: 10px;
+}
+
+.spotify-modal .modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.spotify-modal .modal-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 100px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.spotify-modal .modal-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.spotify-modal .modal-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.spotify-modal .modal-btn.danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.spotify-modal .modal-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
