@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
     <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="pages.css">
@@ -314,8 +317,134 @@
         .back-link:hover {
             color: var(--spotify-green);
         }
+
+        /* Spotify Connection Styles */
+        .spotify-status-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(29, 185, 84, 0.08);
+            border: 1px solid rgba(29, 185, 84, 0.2);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+        }
+
+        .spotify-connection-status {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .spotify-connection-status.connected {
+            color: var(--spotify-green);
+            font-weight: 600;
+        }
+
+        .spotify-connect-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(29, 185, 84, 0.15);
+            border: 1px solid rgba(29, 185, 84, 0.3);
+            border-radius: 100px;
+            color: var(--spotify-green);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .spotify-connect-btn:hover {
+            background: rgba(29, 185, 84, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .spotify-connect-btn.connected {
+            background: var(--spotify-green);
+            color: #000;
+        }
+
+        .spotify-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .spotify-badge {
+            font-size: 0.8rem;
+        }
+
+        .option-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Advanced Options */
+        .advanced-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .advanced-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .advanced-toggle i:last-child {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .advanced-toggle.active i:last-child {
+            transform: rotate(180deg);
+        }
+
+        .advanced-options {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 100, 100, 0.05);
+            border: 1px dashed rgba(255, 100, 100, 0.2);
+            border-radius: 10px;
+        }
+
+        .advanced-options.hidden {
+            display: none;
+        }
+
+        .advanced-warning {
+            font-size: 0.8rem;
+            color: #f59e0b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .save-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .save-btn.secondary:hover {
+            background: rgba(29, 185, 84, 0.2);
+            color: var(--spotify-green);
+        }
     </style>
 </head>
+
 <body>
     <!-- Animated Gradient Background -->
     <div class="gradient-bg">
@@ -348,7 +477,9 @@
         <div class="profile-card">
             <div class="profile-header">
                 <div class="profile-avatar-section">
-                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=1DB954&color=fff&size=128" alt="Profile" class="profile-avatar">
+                    <img id="profileAvatar"
+                        src="https://ui-avatars.com/api/?name=User&background=1DB954&color=fff&size=128" alt="Profile"
+                        class="profile-avatar">
                     <button class="avatar-upload-btn" id="changeAvatarBtn">
                         <i class="fas fa-camera"></i>
                     </button>
@@ -421,6 +552,44 @@
                 </form>
             </div>
 
+            <!-- Spotify Connection Section -->
+            <div class="profile-section">
+                <h3 class="section-title"><i class="fab fa-spotify" style="color: #1DB954;"></i> Spotify Connection</h3>
+                <div class="spotify-status-card" id="spotifyStatusCard">
+                    <div class="spotify-connection-info">
+                        <span class="spotify-connection-status" id="spotifyStatus">Checking...</span>
+                    </div>
+                    <button class="spotify-connect-btn" id="spotifyConnectBtn">
+                        <svg class="spotify-icon" viewBox="0 0 24 24" width="18" height="18">
+                            <path fill="currentColor"
+                                d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+                        </svg>
+                        <span>Connect Spotify</span>
+                    </button>
+                </div>
+                <p class="option-hint">When connected, playlists will be created directly in your Spotify account.</p>
+            </div>
+
+            <!-- Advanced Options Section -->
+            <div class="profile-section">
+                <button class="advanced-toggle" id="advancedToggle" onclick="toggleAdvancedOptions()">
+                    <i class="fas fa-cog"></i> Advanced Options
+                    <i class="fas fa-chevron-down" id="advancedChevron"></i>
+                </button>
+                <div class="advanced-options hidden" id="advancedOptions">
+                    <p class="advanced-warning"><i class="fas fa-exclamation-triangle"></i> Developer options - use with
+                        caution</p>
+                    <div class="form-group">
+                        <label for="manualRefreshToken">Manual Refresh Token</label>
+                        <input type="password" id="manualRefreshToken"
+                            placeholder="Paste your Spotify refresh token here">
+                    </div>
+                    <button type="button" class="save-btn secondary" onclick="saveManualToken()">
+                        <i class="fas fa-key"></i> Save Token
+                    </button>
+                </div>
+            </div>
+
             <a href="app.html" class="back-link">
                 <i class="fas fa-arrow-left"></i> Back to App
             </a>
@@ -449,6 +618,7 @@
 
     <script src="cursor.js"></script>
     <script src="userAuth.js"></script>
+    <script src="spotify-connect.js"></script>
     <script src="auth-button.js"></script>
     <script>
         // Check authentication
@@ -497,9 +667,9 @@
 
         // Update UI with user data
         function updateUI() {
-            const avatarUrl = currentUser.profile_picture || 
+            const avatarUrl = currentUser.profile_picture ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.display_name || currentUser.username)}&background=1DB954&color=fff&size=128`;
-            
+
             document.getElementById('profileAvatar').src = avatarUrl;
             document.getElementById('displayNameText').textContent = currentUser.display_name || currentUser.username;
             document.getElementById('usernameText').textContent = '@' + currentUser.username;
@@ -695,6 +865,40 @@
                 showMessage('Connection error', 'error');
             }
         };
+
+        // Advanced Options toggle
+        function toggleAdvancedOptions() {
+            const panel = document.getElementById('advancedOptions');
+            const toggle = document.getElementById('advancedToggle');
+            panel.classList.toggle('hidden');
+            toggle.classList.toggle('active');
+        }
+
+        // Save manual token
+        async function saveManualToken() {
+            const tokenInput = document.getElementById('manualRefreshToken');
+            const token = tokenInput.value.trim();
+
+            if (!token) {
+                showMessage('Please enter a refresh token', 'error');
+                return;
+            }
+
+            if (window.SpotifyConnect) {
+                const success = await window.SpotifyConnect.saveManualToken(token);
+                if (success) {
+                    tokenInput.value = '';
+                    showMessage('Spotify token saved successfully!', 'success');
+                }
+            } else {
+                showMessage('SpotifyConnect not available', 'error');
+            }
+        }
+
+        // Make functions available globally
+        window.toggleAdvancedOptions = toggleAdvancedOptions;
+        window.saveManualToken = saveManualToken;
     </script>
 </body>
+
 </html>

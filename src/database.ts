@@ -115,6 +115,23 @@ export function initializeDatabase() {
     )
   `);
 
+  // Spotify tokens table - stores per-user OAuth tokens
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS spotify_tokens (
+      user_id INTEGER PRIMARY KEY,
+      access_token TEXT NOT NULL,
+      refresh_token TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      spotify_user_id TEXT,
+      spotify_display_name TEXT,
+      spotify_email TEXT,
+      spotify_avatar TEXT,
+      connected_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
   console.log('✅ Database initialized successfully');
 
   // Seed initial users if database is empty
@@ -658,6 +675,151 @@ export function getProCode(userId: string) {
     isActive: true,
     productType: activation.product_type,
     expiresAt: activation.expires_at
+  };
+}
+
+// ============================================================================
+// SPOTIFY TOKEN FUNCTIONS - Per-user token storage
+// ============================================================================
+
+export interface SpotifyTokens {
+  userId: number;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  spotifyUserId?: string;
+  spotifyDisplayName?: string;
+  spotifyEmail?: string;
+  spotifyAvatar?: string;
+}
+
+/**
+ * Save or update Spotify tokens for a user
+ */
+export function saveSpotifyTokens(tokens: SpotifyTokens) {
+  const stmt = db.prepare(`
+    INSERT INTO spotify_tokens (
+      user_id, access_token, refresh_token, expires_at,
+      spotify_user_id, spotify_display_name, spotify_email, spotify_avatar,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(user_id) DO UPDATE SET
+      access_token = excluded.access_token,
+      refresh_token = excluded.refresh_token,
+      expires_at = excluded.expires_at,
+      spotify_user_id = excluded.spotify_user_id,
+      spotify_display_name = excluded.spotify_display_name,
+      spotify_email = excluded.spotify_email,
+      spotify_avatar = excluded.spotify_avatar,
+      updated_at = CURRENT_TIMESTAMP
+  `);
+
+  stmt.run(
+    tokens.userId,
+    tokens.accessToken,
+    tokens.refreshToken,
+    tokens.expiresAt,
+    tokens.spotifyUserId || null,
+    tokens.spotifyDisplayName || null,
+    tokens.spotifyEmail || null,
+    tokens.spotifyAvatar || null
+  );
+
+  // Also update the spotify_connected flag in users table
+  db.prepare(`UPDATE users SET spotify_connected = 1 WHERE id = ?`).run(tokens.userId);
+
+  console.log(`💾 Saved Spotify tokens for user ${tokens.userId}`);
+  return true;
+}
+
+/**
+ * Get Spotify tokens for a user
+ */
+export function getSpotifyTokens(userId: number): SpotifyTokens | null {
+  const stmt = db.prepare(`
+    SELECT * FROM spotify_tokens WHERE user_id = ?
+  `);
+
+  const row = stmt.get(userId) as any;
+
+  if (!row) return null;
+
+  return {
+    userId: row.user_id,
+    accessToken: row.access_token,
+    refreshToken: row.refresh_token,
+    expiresAt: row.expires_at,
+    spotifyUserId: row.spotify_user_id,
+    spotifyDisplayName: row.spotify_display_name,
+    spotifyEmail: row.spotify_email,
+    spotifyAvatar: row.spotify_avatar
+  };
+}
+
+/**
+ * Update only the access token (after refresh)
+ */
+export function updateSpotifyAccessToken(userId: number, accessToken: string, expiresAt: number, newRefreshToken?: string) {
+  let stmt;
+  if (newRefreshToken) {
+    stmt = db.prepare(`
+      UPDATE spotify_tokens 
+      SET access_token = ?, expires_at = ?, refresh_token = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = ?
+    `);
+    stmt.run(accessToken, expiresAt, newRefreshToken, userId);
+  } else {
+    stmt = db.prepare(`
+      UPDATE spotify_tokens 
+      SET access_token = ?, expires_at = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = ?
+    `);
+    stmt.run(accessToken, expiresAt, userId);
+  }
+
+  console.log(`🔄 Updated access token for user ${userId}`);
+  return true;
+}
+
+/**
+ * Remove Spotify connection for a user
+ */
+export function removeSpotifyConnection(userId: number) {
+  db.prepare(`DELETE FROM spotify_tokens WHERE user_id = ?`).run(userId);
+  db.prepare(`UPDATE users SET spotify_connected = 0 WHERE id = ?`).run(userId);
+
+  console.log(`🔌 Removed Spotify connection for user ${userId}`);
+  return true;
+}
+
+/**
+ * Check if a user has a valid Spotify connection
+ */
+export function isSpotifyConnected(userId: number): boolean {
+  const tokens = getSpotifyTokens(userId);
+  return tokens !== null;
+}
+
+/**
+ * Get Spotify connection info for a user (without exposing tokens)
+ */
+export function getSpotifyConnectionInfo(userId: number) {
+  const stmt = db.prepare(`
+    SELECT spotify_user_id, spotify_display_name, spotify_email, spotify_avatar, connected_at
+    FROM spotify_tokens WHERE user_id = ?
+  `);
+
+  const row = stmt.get(userId) as any;
+
+  if (!row) return null;
+
+  return {
+    connected: true,
+    spotifyUserId: row.spotify_user_id,
+    displayName: row.spotify_display_name,
+    email: row.spotify_email,
+    avatar: row.spotify_avatar,
+    connectedAt: row.connected_at
   };
 }
 
