@@ -263,7 +263,8 @@ app.get("/api/proactive-suggestion", (req: Request, res: Response) => {
  * This is the main endpoint that uses memory, intent understanding, and explanation
  */
 app.post("/api/generate-playlist", async (req: Request, res: Response) => {
-  const { prompt, userId = DEFAULT_USER_ID, options, dbUserId } = req.body;
+  const { prompt, options, dbUserId } = req.body;
+  let userId = req.body.userId || DEFAULT_USER_ID;
 
   if (!prompt || typeof prompt !== 'string') {
     res.status(400).json({ status: 'error', message: 'Prompt is required' });
@@ -674,7 +675,7 @@ app.get("/api/timeline-playlists", (req: Request, res: Response) => {
  * Also syncs with database stats if user is logged in
  */
 app.get("/api/user-stats", (req: Request, res: Response) => {
-  const userId = (req.query.userId as string) || DEFAULT_USER_ID;
+  let userId = (req.query.userId as string) || DEFAULT_USER_ID;
   const dbUserId = req.query.dbUserId ? parseInt(req.query.dbUserId as string) : null;
 
   try {

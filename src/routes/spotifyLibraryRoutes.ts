@@ -340,7 +340,7 @@ router.delete('/delete', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-    const accessToken = await getAccessToken(userId);
+    const accessToken = await refreshUserToken(userId);
     if (!accessToken) {
         res.status(401).json({ error: 'unauthorized', message: 'Spotify access token expired or not found' });
         return;
