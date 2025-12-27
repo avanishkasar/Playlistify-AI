@@ -21,8 +21,8 @@ RUN npm run build
 # Remove devDependencies
 RUN npm prune --production
 
-# Expose port
-EXPOSE 3001
+# Expose Apify container port (default 4321 for Standby mode)
+EXPOSE 4321
 
 # Start the server
 CMD ["node", "dist/main.js"]

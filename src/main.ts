@@ -31,7 +31,8 @@ import { MCPRequest, MCPResponse, FeedbackAction } from "./types.js";
 import { incrementPlaylistCount, getLeaderboard } from "./database.js";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+// Use Apify container port for Standby mode, fallback to PORT or 3001
+const PORT = process.env.APIFY_CONTAINER_PORT || process.env.PORT || 3001;
 const ENABLE_NLP = process.env.ENABLE_NLP !== 'false';
 
 // Rate limiter: 100 requests per minute
