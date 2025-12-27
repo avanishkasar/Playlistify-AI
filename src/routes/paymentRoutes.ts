@@ -57,15 +57,16 @@ function generateProCode(): string {
  * Create a new payment order
  * POST /api/payment/create-order
  */
-router.post("/create-order", async (req: Request, res: Response) => {
+router.post("/create-order", async (req: Request, res: Response): Promise<void> => {
     try {
         const { productType, userId } = req.body;
 
         if (!productType || !PRODUCTS[productType as keyof typeof PRODUCTS]) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: "error",
                 error: "Invalid product type"
             });
+            return;
         }
 
         const product = PRODUCTS[productType as keyof typeof PRODUCTS];
@@ -106,15 +107,16 @@ router.post("/create-order", async (req: Request, res: Response) => {
  * Verify payment with transaction ID
  * POST /api/payment/verify
  */
-router.post("/verify", async (req: Request, res: Response) => {
+router.post("/verify", async (req: Request, res: Response): Promise<void> => {
     try {
         const { orderId, transactionId } = req.body;
 
         if (!orderId || !transactionId) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: "error",
                 error: "Order ID and Transaction ID required"
             });
+            return;
         }
 
         // Verify and update order
@@ -149,16 +151,17 @@ router.post("/verify", async (req: Request, res: Response) => {
  * Check payment order status
  * GET /api/payment/status/:orderId
  */
-router.get("/status/:orderId", async (req: Request, res: Response) => {
+router.get("/status/:orderId", async (req: Request, res: Response): Promise<void> => {
     try {
         const { orderId } = req.params;
         const order = getPaymentOrderByCode(orderId);
 
         if (!order) {
-            return res.status(404).json({
+            res.status(404).json({
                 status: "error",
                 error: "Order not found"
             });
+            return;
         }
 
         res.json({
@@ -182,15 +185,16 @@ router.get("/status/:orderId", async (req: Request, res: Response) => {
  * Activate Pro features with code
  * POST /api/payment/activate
  */
-router.post("/activate", async (req: Request, res: Response) => {
+router.post("/activate", async (req: Request, res: Response): Promise<void> => {
     try {
         const { proCode, userId } = req.body;
 
         if (!proCode) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: "error",
                 error: "Pro code required"
             });
+            return;
         }
 
         const result = activateProCode(proCode, userId || "guest");
