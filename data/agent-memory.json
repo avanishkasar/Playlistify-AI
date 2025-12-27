@@ -8527,5 +8527,143 @@
       "totalTracksSkipped": 0,
       "averagePlaylistRating": 0
     }
+  },
+  "guest-1766874560767": {
+    "userId": "guest-1766874560767",
+    "createdAt": 1766874560869,
+    "lastUpdatedAt": 1766874560869,
+    "recentPlaylists": [],
+    "tasteProfile": {
+      "listeningPatterns": {
+        "preferredTimes": [],
+        "averageSessionsPerDay": 0,
+        "mostActiveDay": 0
+      },
+      "timeBasedPreferences": {
+        "early-morning": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "morning": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "afternoon": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "evening": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "night": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "late-night": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        }
+      },
+      "genreAffinities": {},
+      "moodAffinities": {},
+      "activityPreferences": {},
+      "avoidPatterns": {
+        "genres": [],
+        "characteristics": []
+      },
+      "recentMoodTrend": {
+        "period": "week",
+        "dominantMood": "neutral",
+        "energyTrend": "stable"
+      }
+    },
+    "stats": {
+      "totalPlaylistsGenerated": 0,
+      "totalTracksLiked": 0,
+      "totalTracksSkipped": 0,
+      "averagePlaylistRating": 0
+    }
+  },
+  "guest-1766874563741": {
+    "userId": "guest-1766874563741",
+    "createdAt": 1766874563766,
+    "lastUpdatedAt": 1766874563766,
+    "recentPlaylists": [],
+    "tasteProfile": {
+      "listeningPatterns": {
+        "preferredTimes": [],
+        "averageSessionsPerDay": 0,
+        "mostActiveDay": 0
+      },
+      "timeBasedPreferences": {
+        "early-morning": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "morning": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "afternoon": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "evening": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "night": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        },
+        "late-night": {
+          "preferredEnergy": "medium",
+          "preferredGenres": [],
+          "preferredMoods": [],
+          "vocalPreference": "medium-vocals"
+        }
+      },
+      "genreAffinities": {},
+      "moodAffinities": {},
+      "activityPreferences": {},
+      "avoidPatterns": {
+        "genres": [],
+        "characteristics": []
+      },
+      "recentMoodTrend": {
+        "period": "week",
+        "dominantMood": "neutral",
+        "energyTrend": "stable"
+      }
+    },
+    "stats": {
+      "totalPlaylistsGenerated": 0,
+      "totalTracksLiked": 0,
+      "totalTracksSkipped": 0,
+      "averagePlaylistRating": 0
+    }
   }
 }

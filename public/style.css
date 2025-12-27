@@ -69,6 +69,7 @@ body {
 /* Slide in from right for navigation */
 .page-slide-in {
   animation: slideInFromRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
 }
 
 @keyframes slideInFromRight {
@@ -81,6 +82,26 @@ body {
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+/* Page main and container transitions */
+.page-main,
+.page-container {
+  position: relative;
+  z-index: 1;
+  will-change: transform, opacity;
+}
+
+/* Background interactive movement */
+.gradient-bg {
+  will-change: transform;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced blob animations for page transitions */
+.gradient-blob {
+  will-change: transform;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Icon gradient replacement for emojis */
