@@ -31,7 +31,9 @@ const USER_SCOPES = [
     'playlist-modify-public',
     'playlist-modify-private',
     'playlist-read-private',
-    'playlist-read-collaborative'
+    'playlist-read-collaborative',
+    'user-top-read',              // For top artists and tracks
+    'user-read-recently-played'   // For listening history
 ].join(' ');
 
 // PKCE helpers
@@ -599,6 +601,203 @@ router.get('/user-playlists', async (req: Request, res: Response): Promise<void>
 });
 
 /**
+ * GET /api/spotify/top-artists
+ * Get user's top artists from Spotify
+ */
+router.get('/top-artists', async (req: Request, res: Response): Promise<void> => {
+    const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+    const timeRange = (req.query.timeRange as string) || 'medium_term'; // short_term, medium_term, long_term
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    if (!userId) {
+        res.status(400).json({ error: 'missing_user_id', message: 'User ID is required' });
+        return;
+    }
+
+    const accessToken = await refreshUserToken(userId);
+    if (!accessToken) {
+        res.status(401).json({ error: 'unauthorized', message: 'Spotify not connected' });
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}&limit=${limit}`,
+            {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            res.status(response.status).json({ 
+                error: 'spotify_api_error', 
+                message: error.error?.message || 'Failed to fetch top artists' 
+            });
+            return;
+        }
+
+        const data = await response.json();
+        res.json({ 
+            artists: data.items || [],
+            total: data.total || 0
+        });
+
+    } catch (err: any) {
+        console.error('❌ Fetch top artists error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /api/spotify/top-tracks
+ * Get user's top tracks from Spotify
+ */
+router.get('/top-tracks', async (req: Request, res: Response): Promise<void> => {
+    const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+    const timeRange = (req.query.timeRange as string) || 'medium_term';
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    if (!userId) {
+        res.status(400).json({ error: 'missing_user_id', message: 'User ID is required' });
+        return;
+    }
+
+    const accessToken = await refreshUserToken(userId);
+    if (!accessToken) {
+        res.status(401).json({ error: 'unauthorized', message: 'Spotify not connected' });
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=${limit}`,
+            {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            res.status(response.status).json({ 
+                error: 'spotify_api_error', 
+                message: error.error?.message || 'Failed to fetch top tracks' 
+            });
+            return;
+        }
+
+        const data = await response.json();
+        res.json({ 
+            tracks: data.items || [],
+            total: data.total || 0
+        });
+
+    } catch (err: any) {
+        console.error('❌ Fetch top tracks error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /api/spotify/recently-played
+ * Get user's recently played tracks
+ */
+router.get('/recently-played', async (req: Request, res: Response): Promise<void> => {
+    const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    if (!userId) {
+        res.status(400).json({ error: 'missing_user_id', message: 'User ID is required' });
+        return;
+    }
+
+    const accessToken = await refreshUserToken(userId);
+    if (!accessToken) {
+        res.status(401).json({ error: 'unauthorized', message: 'Spotify not connected' });
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `https://api.spotify.com/v1/me/player/recently-played?limit=${limit}`,
+            {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            res.status(response.status).json({ 
+                error: 'spotify_api_error', 
+                message: error.error?.message || 'Failed to fetch recently played' 
+            });
+            return;
+        }
+
+        const data = await response.json();
+        res.json({ 
+            items: data.items || [],
+            cursors: data.cursors || null
+        });
+
+    } catch (err: any) {
+        console.error('❌ Fetch recently played error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /api/spotify/user-context
+ * Get comprehensive user context (top artists, tracks, playlists, recently played)
+ */
+router.get('/user-context', async (req: Request, res: Response): Promise<void> => {
+    const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+
+    if (!userId) {
+        res.status(400).json({ error: 'missing_user_id', message: 'User ID is required' });
+        return;
+    }
+
+    const accessToken = await refreshUserToken(userId);
+    if (!accessToken) {
+        res.status(401).json({ error: 'unauthorized', message: 'Spotify not connected' });
+        return;
+    }
+
+    try {
+        // Fetch all data in parallel
+        const [topArtists, topTracks, playlists, recentlyPlayed] = await Promise.all([
+            fetch('https://api.spotify.com/v1/me/top/artists?time_range=medium_term&limit=20', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }).then(r => r.ok ? r.json() : { items: [] }),
+            
+            fetch('https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=20', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }).then(r => r.ok ? r.json() : { items: [] }),
+            
+            fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }).then(r => r.ok ? r.json() : { items: [] }),
+            
+            fetch('https://api.spotify.com/v1/me/player/recently-played?limit=20', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            }).then(r => r.ok ? r.json() : { items: [] })
+        ]);
+
+        res.json({
+            topArtists: topArtists.items || [],
+            topTracks: topTracks.items || [],
+            playlists: playlists.items || [],
+            recentlyPlayed: recentlyPlayed.items || []
+        });
+
+    } catch (err: any) {
+        console.error('❌ Fetch user context error:', err.message);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
+    }
+});
+
+/**
  * DELETE /api/spotify/delete-playlist
  * Delete (unfollow) a playlist from user's Spotify
  */
@@ -760,7 +959,11 @@ router.get('/status', (_req: Request, res: Response) => {
             createPlaylist: '/api/spotify/create-playlist',
             userPlaylists: '/api/spotify/user-playlists?userId=XXX',
             deletePlaylist: '/api/spotify/delete-playlist',
-            saveCredentials: '/api/spotify/save-credentials'
+            saveCredentials: '/api/spotify/save-credentials',
+            topArtists: '/api/spotify/top-artists?userId=XXX&timeRange=medium_term',
+            topTracks: '/api/spotify/top-tracks?userId=XXX&timeRange=medium_term',
+            recentlyPlayed: '/api/spotify/recently-played?userId=XXX',
+            userContext: '/api/spotify/user-context?userId=XXX'
         }
     });
 });

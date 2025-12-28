@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Spotify User Data</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            padding: 2rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .test-section h2 {
+            color: var(--spotify-green);
+            margin-bottom: 1rem;
+        }
+        .test-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--spotify-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-weight: 600;
+        }
+        .test-btn:hover {
+            background: #1ed760;
+        }
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result pre {
+            color: #fff;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .item-card {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .item-card img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .item-card h4 {
+            margin: 0.5rem 0;
+            color: var(--text-primary);
+        }
+        .item-card p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #51cf66;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Spotify User Data Test</h1>
+    
+    <div class="test-section">
+        <h2>User ID</h2>
+        <input type="number" id="userIdInput" placeholder="Enter User ID" value="1" style="padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; width: 200px;">
+    </div>
+
+    <div class="test-section">
+        <h2>Top Artists</h2>
+        <button class="test-btn" onclick="testTopArtists()">Get Top Artists</button>
+        <button class="test-btn" onclick="testTopArtists('short_term')">Last 4 Weeks</button>
+        <button class="test-btn" onclick="testTopArtists('long_term')">All Time</button>
+        <div id="topArtistsResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Top Tracks</h2>
+        <button class="test-btn" onclick="testTopTracks()">Get Top Tracks</button>
+        <button class="test-btn" onclick="testTopTracks('short_term')">Last 4 Weeks</button>
+        <button class="test-btn" onclick="testTopTracks('long_term')">All Time</button>
+        <div id="topTracksResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Recently Played</h2>
+        <button class="test-btn" onclick="testRecentlyPlayed()">Get Recently Played</button>
+        <div id="recentlyPlayedResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>User Context (All Data)</h2>
+        <button class="test-btn" onclick="testUserContext()">Get Full Context</button>
+        <div id="userContextResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function getUserId() {
+            return parseInt(document.getElementById('userIdInput').value) || 1;
+        }
+
+        async function testTopArtists(timeRange = 'medium_term') {
+            const userId = getUserId();
+            const resultDiv = document.getElementById('topArtistsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/spotify/top-artists?userId=${userId}&timeRange=${timeRange}&limit=20`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success! Found ${data.artists?.length || 0} artists</p>
+                        <div class="item-list">
+                            ${(data.artists || []).map(artist => `
+                                <div class="item-card">
+                                    ${artist.images?.[0] ? `<img src="${artist.images[0].url}" alt="${artist.name}">` : ''}
+                                    <h4>${artist.name}</h4>
+                                    <p>Genres: ${(artist.genres || []).slice(0, 2).join(', ')}</p>
+                                    <p>Popularity: ${artist.popularity || 'N/A'}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error: ${data.error || data.message || 'Unknown error'}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p class="error">❌ Network Error: ${err.message}</p>`;
+            }
+        }
+
+        async function testTopTracks(timeRange = 'medium_term') {
+            const userId = getUserId();
+            const resultDiv = document.getElementById('topTracksResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/spotify/top-tracks?userId=${userId}&timeRange=${timeRange}&limit=20`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success! Found ${data.tracks?.length || 0} tracks</p>
+                        <div class="item-list">
+                            ${(data.tracks || []).map(track => `
+                                <div class="item-card">
+                                    ${track.album?.images?.[0] ? `<img src="${track.album.images[0].url}" alt="${track.name}">` : ''}
+                                    <h4>${track.name}</h4>
+                                    <p>${track.artists?.map(a => a.name).join(', ')}</p>
+                                    <p>Album: ${track.album?.name || 'N/A'}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error: ${data.error || data.message || 'Unknown error'}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p class="error">❌ Network Error: ${err.message}</p>`;
+            }
+        }
+
+        async function testRecentlyPlayed() {
+            const userId = getUserId();
+            const resultDiv = document.getElementById('recentlyPlayedResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/spotify/recently-played?userId=${userId}&limit=20`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success! Found ${data.items?.length || 0} recently played tracks</p>
+                        <div class="item-list">
+                            ${(data.items || []).map(item => `
+                                <div class="item-card">
+                                    ${item.track?.album?.images?.[0] ? `<img src="${item.track.album.images[0].url}" alt="${item.track.name}">` : ''}
+                                    <h4>${item.track?.name || 'Unknown'}</h4>
+                                    <p>${item.track?.artists?.map(a => a.name).join(', ') || 'Unknown Artist'}</p>
+                                    <p>Played: ${item.played_at ? new Date(item.played_at).toLocaleString() : 'N/A'}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error: ${data.error || data.message || 'Unknown error'}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p class="error">❌ Network Error: ${err.message}</p>`;
+            }
+        }
+
+        async function testUserContext() {
+            const userId = getUserId();
+            const resultDiv = document.getElementById('userContextResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/spotify/user-context?userId=${userId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success! Full user context loaded</p>
+                        <p><strong>Top Artists:</strong> ${data.topArtists?.length || 0}</p>
+                        <p><strong>Top Tracks:</strong> ${data.topTracks?.length || 0}</p>
+                        <p><strong>Playlists:</strong> ${data.playlists?.length || 0}</p>
+                        <p><strong>Recently Played:</strong> ${data.recentlyPlayed?.length || 0}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Error: ${data.error || data.message || 'Unknown error'}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<p class="error">❌ Network Error: ${err.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
+
