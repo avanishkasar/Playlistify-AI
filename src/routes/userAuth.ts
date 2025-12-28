@@ -103,6 +103,7 @@ router.post('/register', (req: Request, res: Response): void => {
 
 /**
  * Login user
+ * TEMPORARY: Password validation disabled - accepts any password if username exists
  */
 router.post('/login', (req: Request, res: Response): void => {
   const { username, password } = req.body;
@@ -116,9 +117,11 @@ router.post('/login', (req: Request, res: Response): void => {
   }
 
   try {
-    const user = authenticateUser(username, password);
+    // TEMPORARY: Skip password validation - just check if username exists
+    const userStmt = db.prepare('SELECT id, username, email, display_name FROM users WHERE username = ?');
+    const userData = userStmt.get(username) as { id: number; username: string; email: string; display_name: string | null } | undefined;
 
-    if (!user) {
+    if (!userData) {
       res.status(401).json({
         error: 'invalid_credentials',
         message: 'Invalid username or password'
@@ -126,19 +129,24 @@ router.post('/login', (req: Request, res: Response): void => {
       return;
     }
 
-    const token = createSession(user.id, user.username);
+    // Password validation skipped - allow any password
+    const token = createSession(userData.id, userData.username);
+
+    // Update last login
+    db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(userData.id);
 
     res.json({
       success: true,
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        display_name: user.display_name
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        display_name: userData.display_name
       },
       token
     });
   } catch (error: any) {
+    console.error('[Auth] Login error:', error);
     res.status(500).json({
       error: 'login_failed',
       message: 'An error occurred during login'
