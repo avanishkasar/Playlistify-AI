@@ -108,12 +108,16 @@ router.get('/playlists', async (req: Request, res: Response): Promise<void> => {
     const accessToken = await refreshUserToken(userId);
 
     if (!accessToken) {
+        console.error('❌ No access token available for user', userId);
         res.status(401).json({ 
             error: 'not_connected', 
-            message: 'Spotify not connected. Please connect your Spotify account first.' 
+            message: 'Spotify not connected. Please connect your Spotify account first.',
+            diagnostic: 'Token refresh returned null - user may need to reconnect'
         });
         return;
     }
+
+    console.log('✅ Access token obtained for user', userId, '(length:', accessToken.length, ')');
 
     // First, test if we can access the user's profile (requires fewer permissions)
     try {
