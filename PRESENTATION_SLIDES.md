@@ -138,30 +138,34 @@ USER INPUT
 
 ### Competitive Advantage
 
-| Feature | Playlistify AI | Spotify AI Playlist | Playlistable | PlaylistAI | Mixo.ai | Soundraw | Mubert | Other Tools |
-|---------|----------------|---------------------|--------------|------------|---------|----------|--------|-------------|
-| **Memory (Learns)** | ✅ YES | ✅ YES | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Scenario Understanding** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ⚠️ Limited |
-| **Artist Diversity** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Voice Input** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No | ⚠️ Limited |
-| **Multi-language** | ✅ Yes (4) | ❌ No (English only) | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Instant Preview** | ✅ Yes | ✅ Yes | ⚠️ Limited | ⚠️ Limited | ❌ No | ❌ No | ❌ No |
-| **Free Tier** | ✅ Yes | ❌ No (Premium only) | ⚠️ Limited | ⚠️ Limited | ❌ No | ❌ No | ⚠️ Limited |
-| **Downloadable MP3** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Enhanced Shuffle (DJ)** | ✅ Yes | ✅ Premium only | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Proactive Suggestions** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Explainability** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Playlist Evolution** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Collaborative Playlists** | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ⚠️ Limited |
-| **Analytics & Timeline** | ✅ Yes | ⚠️ Basic | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Direct Spotify Integration** | ✅ Yes | ✅ Native | ⚠️ Manual | ⚠️ Manual | ❌ No | ❌ No | ⚠️ Limited |
-| **Privacy-First Design** | ✅ Yes | ⚠️ Standard | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown |
-| **@Artist Tagging** | ⚠️ Planned | ❌ No | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **#Track Tagging** | ⚠️ Planned | ❌ No | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **AI Prompt Enhancement** | ⚠️ Planned | ❌ No | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Listening History Integration** | ⚠️ Planned | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Top Artists Display** | ⚠️ Planned | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Stripe Payments** | ⚠️ Planned | ❌ No | ✅ Yes | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown | ⚠️ Unknown |
+| Feature | Playlistify AI | Spotify AI | Playlistable | Others |
+|:--------|:---------------|:-----------|:-------------|:-------|
+| **Memory (Learns)** | ✅ YES | ✅ YES | ❌ No | ❌ No |
+| **Scenario Understanding** | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ Limited |
+| **Artist Diversity** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Voice Input** | ✅ Yes | ❌ No | ❌ No | ⚠️ Limited |
+| **Multi-language** | ✅ Yes<br>(4 languages) | ❌ No<br>(English only) | ❌ No<br>(English only) | ❌ No |
+| **Instant Preview** | ✅ Yes | ✅ Yes | ⚠️ Limited | ❌ No |
+| **Free Tier** | ✅ Yes<br>(10/day) | ❌ No<br>(Premium only) | ❌ No<br>(Paid only) | ⚠️ Limited |
+| **Downloadable MP3** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Enhanced Shuffle (DJ)** | ✅ Yes | ✅ Premium only | ❌ No | ❌ No |
+| **Proactive Suggestions** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Explainability** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Playlist Evolution** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Collaborative Playlists** | ✅ Yes | ✅ Yes | ❌ No | ⚠️ Limited |
+| **Analytics & Timeline** | ✅ Yes | ⚠️ Basic | ❌ No | ❌ No |
+| **Direct Spotify Integration** | ✅ Yes | ✅ Native | ✅ Yes | ⚠️ Manual |
+| **Privacy-First Design** | ✅ Yes | ⚠️ Standard | ⚠️ Unknown | ⚠️ Unknown |
+| **@Artist Tagging** | ⚠️ Planned | ❌ No | ✅ Yes | ❌ No |
+| **#Track Tagging** | ⚠️ Planned | ❌ No | ✅ Yes | ❌ No |
+| **AI Prompt Enhancement** | ⚠️ Planned | ❌ No | ✅ Yes | ❌ No |
+| **Listening History Integration** | ⚠️ Planned | ✅ Yes | ✅ Yes | ❌ No |
+| **Top Artists Display** | ⚠️ Planned | ✅ Yes | ✅ Yes | ❌ No |
+| **Stripe Payments** | ⚠️ Planned | ❌ No | ✅ Yes | ⚠️ Unknown |
+| **Pricing (Monthly)** | $0.99 | $10.99 | €4.99<br>(~$5.40) | ⚠️ Varies |
+| **Create from Song** | ✅ Yes | ❌ No | ✅ Yes | ⚠️ Limited |
+| **Create from Artist** | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ Limited |
+| **Mood-Based Creation** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
 
 ### Key Competitive Advantages
 
