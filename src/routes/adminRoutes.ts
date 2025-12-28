@@ -157,27 +157,9 @@ router.get('/users', requireAdminAuth, (_req: Request, res: Response) => {
 });
 
 /**
- * Get all user credentials (for signin page admin view)
- * This is a special endpoint for displaying credentials on signin page
- * Credentials are stored in seedInitialUsers, so we return the seed data
+ * SECURITY: Removed /users-credentials endpoint
+ * Passwords should never be exposed via API endpoints
+ * This endpoint was a security risk and has been removed
  */
-router.get('/users-credentials', (_req: Request, res: Response) => {
-  // Return the seeded user credentials (these are demo accounts)
-  const seedUsers = [
-    { username: 'avanish', password: 'Avanish@123' },
-    { username: 'priya_sharma', password: 'Priya@2024' },
-    { username: 'rahul_dev', password: 'RahulDev#99' },
-    { username: 'sneha_music', password: 'Sneha!Music1' },
-    { username: 'arjun_beats', password: 'ArjunB@567' },
-    { username: 'ananya_vibes', password: 'Ananya#Vibes' },
-    { username: 'vikram_tunes', password: 'VikramT@321' },
-    { username: 'kavya_rhythms', password: 'Kavya!2024' },
-    { username: 'rohan_sounds', password: 'RohanS#789' },
-    { username: 'meera_playlist', password: 'Meera@Play1' },
-    { username: 'aditya_mix', password: 'AdityaM!234' },
-  ];
-
-  res.json({ users: seedUsers });
-});
 
 export default router;

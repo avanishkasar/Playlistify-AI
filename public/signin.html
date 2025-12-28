@@ -443,11 +443,7 @@
                     <span class="admin-icon">🔐</span>
                     <span>Admin Controls</span>
                 </div>
-                <button id="viewUsersBtn" class="admin-btn" onclick="showUserCredentials()">
-                    <i class="fas fa-users"></i>
-                    View All User Credentials
-                </button>
-                <div id="userCredentialsList" class="user-credentials-list" style="display: none;"></div>
+                <!-- SECURITY: Removed password display functionality -->
             </div>
 
             <div class="benefits-list">
@@ -529,34 +525,7 @@
             return username === 'admin' && password === 'admin';
         }
 
-        // Show user credentials for admin
-        async function showUserCredentials() {
-            const listEl = document.getElementById('userCredentialsList');
-            if (listEl.style.display === 'block') {
-                listEl.style.display = 'none';
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/admin/users-credentials');
-                const data = await response.json();
-                
-                if (data.users && data.users.length > 0) {
-                    listEl.innerHTML = data.users.map(u => `
-                        <div class="user-credential-item">
-                            <span class="username">${u.username}</span>
-                            <span class="password">${u.password}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    listEl.innerHTML = '<div class="user-credential-item">No users found</div>';
-                }
-                listEl.style.display = 'block';
-            } catch (err) {
-                listEl.innerHTML = '<div class="user-credential-item">Failed to load users</div>';
-                listEl.style.display = 'block';
-            }
-        }
+        // SECURITY: Removed showUserCredentials function - passwords should never be exposed
 
         // Login form submission
         loginForm.addEventListener('submit', async (e) => {
