@@ -1606,7 +1606,7 @@ SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
                 <h3>Could not load playlists</h3>
                 <p>${errorMessage}</p>
                 ${isAuthError ? `
-                  <button class="spotify-btn" onclick="SpotifyLibrary.disconnect(); setTimeout(() => SpotifyLibrary.connectSpotify(), 500);" style="margin-top: 1rem;">
+                  <button class="spotify-btn" onclick="SpotifyLibrary.reconnectSpotify()" style="margin-top: 1rem;">
                     <i class="fas fa-sync-alt"></i> Reconnect Spotify
                   </button>
                 ` : `
@@ -1935,11 +1935,45 @@ SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
         }
       },
 
-      disconnect() {
-        SpotifyConnect.disconnect();
-        this.showNotConnectedView();
-        this.updateNavButton();
-        this.showToast('Spotify disconnected', 'info');
+      async disconnect() {
+        try {
+          const userId = this.getCurrentUserId();
+          if (userId) {
+            // Call backend to disconnect
+            await fetch('/api/spotify/disconnect', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId })
+            }).catch(() => {}); // Ignore errors
+          }
+          
+          // Also disconnect from client-side storage
+          await SpotifyConnect.disconnect();
+          this.showNotConnectedView();
+          this.updateNavButton();
+          this.showToast('Spotify disconnected', 'info');
+        } catch (err) {
+          console.error('Disconnect error:', err);
+          // Still show disconnected view even if API call fails
+          await SpotifyConnect.disconnect();
+          this.showNotConnectedView();
+          this.updateNavButton();
+        }
+      },
+
+      async reconnectSpotify() {
+        try {
+          this.showToast('Disconnecting...', 'info');
+          await this.disconnect();
+          // Wait a bit for disconnect to complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+          this.showToast('Redirecting to Spotify...', 'info');
+          // Redirect to connect
+          this.connectSpotify();
+        } catch (err) {
+          console.error('Reconnect error:', err);
+          this.showToast('Error during reconnect. Please try manually.', 'error');
+        }
       },
 
       showToast(message, type = 'info') {
