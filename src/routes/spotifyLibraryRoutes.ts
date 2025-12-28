@@ -115,6 +115,41 @@ router.get('/playlists', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
+    // First, test if we can access the user's profile (requires fewer permissions)
+    try {
+        const profileResponse = await fetch('https://api.spotify.com/v1/me', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (!profileResponse.ok) {
+            const profileError = await profileResponse.json().catch(() => ({}));
+            console.error('❌ Cannot access Spotify profile:', {
+                status: profileResponse.status,
+                error: profileError
+            });
+            res.status(profileResponse.status).json({ 
+                error: 'spotify_api_error', 
+                message: profileError.error?.message || `Cannot access Spotify profile: ${profileResponse.status}`,
+                spotifyError: profileError.error,
+                status: profileResponse.status,
+                diagnostic: 'Profile access failed - token may be invalid or missing scopes'
+            });
+            return;
+        }
+
+        const profile = await profileResponse.json();
+        console.log('✅ Spotify profile accessible for user', userId, ':', profile.display_name || profile.id);
+    } catch (profileErr: any) {
+        console.error('❌ Profile check error:', profileErr.message);
+        res.status(500).json({ 
+            error: 'server_error', 
+            message: 'Failed to verify Spotify connection',
+            diagnostic: profileErr.message
+        });
+        return;
+    }
+
+    // Now try to fetch playlists
     try {
         const response = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
             headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -133,7 +168,8 @@ router.get('/playlists', async (req: Request, res: Response): Promise<void> => {
                 error: 'spotify_api_error', 
                 message: errorData.error?.message || `Spotify API error: ${response.status} ${response.statusText}`,
                 spotifyError: errorData.error,
-                status: response.status
+                status: response.status,
+                diagnostic: `Profile accessible but playlists endpoint failed - may be missing 'playlist-read-private' scope`
             });
             return;
         }
