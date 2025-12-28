@@ -1584,7 +1584,7 @@ SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
 
           const response = await fetch(`/api/spotify/library/playlists?userId=${userId}`);
           
-          if (!response.ok) {
+            if (!response.ok) {
             const data = await response.json().catch(() => ({}));
             console.error('Failed to load playlists:', data);
             
@@ -1594,14 +1594,26 @@ SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
               return;
             }
             
+            // Check for 403/401 errors - likely token expired or missing scopes
+            const isAuthError = response.status === 403 || response.status === 401;
+            const errorMessage = isAuthError 
+              ? 'Your Spotify connection may have expired or needs new permissions. Please disconnect and reconnect your Spotify account.'
+              : (data.message || 'Please try refreshing or reconnecting your Spotify account.');
+            
             grid.innerHTML = `
               <div class="empty-state">
                 <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
                 <h3>Could not load playlists</h3>
-                <p>${data.message || 'Please try refreshing or reconnecting your Spotify account.'}</p>
-                <button class="spotify-btn" onclick="SpotifyLibrary.refreshPlaylists()" style="margin-top: 1rem;">
-                  <i class="fas fa-sync-alt"></i> Refresh
-                </button>
+                <p>${errorMessage}</p>
+                ${isAuthError ? `
+                  <button class="spotify-btn" onclick="SpotifyLibrary.disconnect(); setTimeout(() => SpotifyLibrary.connectSpotify(), 500);" style="margin-top: 1rem;">
+                    <i class="fas fa-sync-alt"></i> Reconnect Spotify
+                  </button>
+                ` : `
+                  <button class="spotify-btn" onclick="SpotifyLibrary.refreshPlaylists()" style="margin-top: 1rem;">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                  </button>
+                `}
               </div>
             `;
             return;

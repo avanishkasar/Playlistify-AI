@@ -50,7 +50,8 @@ async function refreshUserToken(userId: number): Promise<string | null> {
         });
 
         if (!response.ok) {
-            console.error('❌ Token refresh failed for user', userId);
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Token refresh failed for user', userId, ':', errorData);
             return null;
         }
 
@@ -120,9 +121,12 @@ router.get('/playlists', async (req: Request, res: Response): Promise<void> => {
         });
 
         if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Spotify API error fetching playlists:', errorData);
             res.status(response.status).json({ 
                 error: 'spotify_api_error', 
-                message: 'Failed to fetch playlists from Spotify' 
+                message: errorData.error?.message || 'Failed to fetch playlists from Spotify',
+                spotifyError: errorData.error
             });
             return;
         }
