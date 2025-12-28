@@ -1,4 +1,6 @@
 import express, { Request, Response, Router } from 'express';
+import { refinePlaylistWithChat } from '../services/agenticEngine.js';
+import * as spotifyHandler from '../services/spotifyHandler.js';
 
 const router: Router = express.Router();
 
@@ -21,6 +23,20 @@ interface CollabSession {
     userName: string;
     text: string;
     timestamp: Date;
+  }>;
+  messages: Array<{
+    userId: string;
+    userName: string;
+    text: string;
+    timestamp: Date;
+    type?: 'message' | 'action';
+  }>;
+  tracks: Array<{
+    name: string;
+    artist: string;
+    uri: string;
+    image?: string;
+    addedBy: string;
   }>;
   currentPlaylist: any | null;
   isLive: boolean;
@@ -73,6 +89,8 @@ router.post('/create', (req: Request, res: Response): void => {
         joinedAt: new Date()
       }],
       prompts: [],
+      messages: [],
+      tracks: [],
       currentPlaylist: null,
       isLive: true,
       maxMembers: 3,
@@ -184,6 +202,8 @@ router.post('/join', (req: Request, res: Response): void => {
         mood: session.mood,
         members: session.members,
         prompts: session.prompts,
+        messages: session.messages,
+        tracks: session.tracks,
         maxMembers: session.maxMembers,
         creatorName: session.creatorName
       }
@@ -278,6 +298,8 @@ router.get('/session/:code', (req: Request, res: Response): void => {
         mood: session.mood,
         members: session.members,
         prompts: session.prompts,
+        messages: session.messages,
+        tracks: session.tracks,
         currentPlaylist: session.currentPlaylist,
         maxMembers: session.maxMembers,
         creatorName: session.creatorName,
@@ -287,6 +309,236 @@ router.get('/session/:code', (req: Request, res: Response): void => {
     });
   } catch (error: any) {
     console.error('[Collab] Get session error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Send a chat message and process with AI to add tracks
+router.post('/message', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { code, userId, userName, text } = req.body;
+
+    if (!code || !userId || !text) {
+      res.status(400).json({
+        success: false,
+        error: 'Code, userId, and text are required'
+      });
+      return;
+    }
+
+    const session = collabSessions.get(code.toUpperCase());
+
+    if (!session) {
+      res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+      return;
+    }
+
+    // Check if user is a member
+    const isMember = session.members.some(m => m.id === userId);
+    if (!isMember) {
+      res.status(403).json({
+        success: false,
+        error: 'You are not a member of this session'
+      });
+      return;
+    }
+
+    // Add user message
+    const userMessage = {
+      userId,
+      userName: userName || 'Unknown',
+      text,
+      timestamp: new Date(),
+      type: 'message' as const
+    };
+    session.messages.push(userMessage);
+    session.lastActivity = new Date();
+
+    let tracksAdded = false;
+    let aiResponse = '';
+
+    // Process message with AI to add tracks
+    try {
+      const originalPrompt = session.mood || session.description || 'collaborative playlist';
+      const currentTrackUris = session.tracks.map(t => t.uri);
+      
+      // Use AI to parse the refinement request
+      const { parseRefinementRequest } = await import('../services/aiService.js');
+      const parsedRequest = await parseRefinementRequest(
+        originalPrompt,
+        text,
+        [] // Could extract genres from current tracks
+      );
+
+      aiResponse = parsedRequest.explanation || 'Got it!';
+
+      // If action is 'add' or 'adjust', search for tracks
+      if (parsedRequest.action === 'add' || parsedRequest.action === 'adjust') {
+        const searchResult = await spotifyHandler.searchTracks(parsedRequest.searchQuery, 5);
+
+        if (searchResult.status === 'success' && searchResult.data?.tracks) {
+          const newTracks = searchResult.data.tracks
+            .filter((t: any) => !currentTrackUris.includes(t.uri))
+            .slice(0, 3) // Limit to 3 tracks per message
+            .map((track: any) => ({
+              name: track.name || 'Unknown',
+              artist: track.artists?.[0]?.name || 'Unknown',
+              uri: track.uri,
+              image: track.album?.images?.[0]?.url,
+              addedBy: userName || 'Unknown'
+            }));
+
+          if (newTracks.length > 0) {
+            session.tracks.push(...newTracks);
+            tracksAdded = true;
+            aiResponse = `${parsedRequest.explanation} Added ${newTracks.length} track${newTracks.length > 1 ? 's' : ''}! 🎵`;
+          } else {
+            aiResponse = `${parsedRequest.explanation} All matching tracks are already in the playlist!`;
+          }
+        } else {
+          aiResponse = `Couldn't find tracks matching "${parsedRequest.criteria}". Try being more specific!`;
+        }
+      } else if (parsedRequest.action === 'remove') {
+        aiResponse = `${parsedRequest.explanation} Use the × button on tracks to remove them!`;
+      } else {
+        aiResponse = parsedRequest.explanation || "I'm ready to help! Tell me what you want to add.";
+      }
+
+      // Add AI response as action message
+      session.messages.push({
+        userId: 'ai',
+        userName: 'AI Assistant',
+        text: aiResponse,
+        timestamp: new Date(),
+        type: 'action'
+      });
+    } catch (aiError: any) {
+      console.error('[Collab] AI processing error:', aiError);
+      // Still add the user message even if AI fails
+      aiResponse = "I'm here to help! Try suggesting a mood or genre like 'chill vibes' or 'upbeat pop'.";
+      session.messages.push({
+        userId: 'ai',
+        userName: 'AI Assistant',
+        text: aiResponse,
+        timestamp: new Date(),
+        type: 'action'
+      });
+    }
+
+    console.log(`[Collab] Message added to ${code} by ${userName}: "${text.substring(0, 50)}..."`);
+
+    res.json({
+      success: true,
+      session: {
+        id: session.id,
+        code: session.code,
+        name: session.name,
+        description: session.description,
+        mood: session.mood,
+        members: session.members,
+        prompts: session.prompts,
+        messages: session.messages,
+        tracks: session.tracks,
+        currentPlaylist: session.currentPlaylist,
+        maxMembers: session.maxMembers,
+        creatorName: session.creatorName,
+        isLive: session.isLive,
+        createdAt: session.createdAt
+      },
+      tracksAdded
+    });
+  } catch (error: any) {
+    console.error('[Collab] Message error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Remove a track from the session
+router.post('/remove-track', (req: Request, res: Response): void => {
+  try {
+    const { code, trackIndex, userId, userName } = req.body;
+
+    if (!code || trackIndex === undefined || !userId) {
+      res.status(400).json({
+        success: false,
+        error: 'Code, trackIndex, and userId are required'
+      });
+      return;
+    }
+
+    const session = collabSessions.get(code.toUpperCase());
+
+    if (!session) {
+      res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+      return;
+    }
+
+    // Check if user is a member
+    const isMember = session.members.some(m => m.id === userId);
+    if (!isMember) {
+      res.status(403).json({
+        success: false,
+        error: 'You are not a member of this session'
+      });
+      return;
+    }
+
+    // Remove track
+    if (trackIndex >= 0 && trackIndex < session.tracks.length) {
+      const removedTrack = session.tracks[trackIndex];
+      session.tracks.splice(trackIndex, 1);
+      session.lastActivity = new Date();
+
+      // Add action message
+      session.messages.push({
+        userId: userId,
+        userName: userName || 'Unknown',
+        text: `Removed "${removedTrack.name}" by ${removedTrack.artist}`,
+        timestamp: new Date(),
+        type: 'action'
+      });
+
+      console.log(`[Collab] Track removed from ${code} by ${userName}`);
+
+      res.json({
+        success: true,
+        session: {
+          id: session.id,
+          code: session.code,
+          name: session.name,
+          description: session.description,
+          mood: session.mood,
+          members: session.members,
+          prompts: session.prompts,
+          messages: session.messages,
+          tracks: session.tracks,
+          currentPlaylist: session.currentPlaylist,
+          maxMembers: session.maxMembers,
+          creatorName: session.creatorName,
+          isLive: session.isLive,
+          createdAt: session.createdAt
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid track index'
+      });
+    }
+  } catch (error: any) {
+    console.error('[Collab] Remove track error:', error);
     res.status(500).json({
       success: false,
       error: error.message
