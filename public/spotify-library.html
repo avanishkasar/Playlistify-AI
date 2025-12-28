@@ -1586,7 +1586,11 @@ SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
           
             if (!response.ok) {
             const data = await response.json().catch(() => ({}));
-            console.error('Failed to load playlists:', data);
+            console.error('Failed to load playlists:', {
+              status: response.status,
+              data: data,
+              spotifyError: data.spotifyError
+            });
             
             if (data.error === 'not_connected' || data.error === 'unauthorized') {
               this.showToast('Spotify not connected', 'error');
@@ -1596,15 +1600,30 @@ SPOTIFY_REFRESH_TOKEN=your_refresh_token</pre>
             
             // Check for 403/401 errors - likely token expired or missing scopes
             const isAuthError = response.status === 403 || response.status === 401;
-            const errorMessage = isAuthError 
-              ? 'Your Spotify connection may have expired or needs new permissions. Please disconnect and reconnect your Spotify account.'
-              : (data.message || 'Please try refreshing or reconnecting your Spotify account.');
+            let errorMessage = data.message || 'Please try refreshing or reconnecting your Spotify account.';
+            
+            // Provide more specific error messages
+            if (data.spotifyError) {
+              if (data.spotifyError.message) {
+                errorMessage = `Spotify API Error: ${data.spotifyError.message}`;
+              }
+              if (data.spotifyError.status === 403) {
+                errorMessage = 'Access denied. Your Spotify token may be missing required permissions. Please disconnect and reconnect.';
+              }
+            }
+            
+            if (isAuthError && !data.spotifyError) {
+              errorMessage = 'Your Spotify connection may have expired or needs new permissions. Please disconnect and reconnect your Spotify account.';
+            }
             
             grid.innerHTML = `
               <div class="empty-state">
                 <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
                 <h3>Could not load playlists</h3>
                 <p>${errorMessage}</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  Status: ${response.status} | Error: ${data.error || 'Unknown'}
+                </p>
                 ${isAuthError ? `
                   <button class="spotify-btn" onclick="SpotifyLibrary.reconnectSpotify()" style="margin-top: 1rem;">
                     <i class="fas fa-sync-alt"></i> Reconnect Spotify

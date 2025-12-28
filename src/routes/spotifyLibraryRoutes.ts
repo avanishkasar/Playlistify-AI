@@ -122,11 +122,18 @@ router.get('/playlists', async (req: Request, res: Response): Promise<void> => {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('❌ Spotify API error fetching playlists:', errorData);
+            const errorText = await response.text().catch(() => '');
+            console.error('❌ Spotify API error fetching playlists:', {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorData,
+                rawResponse: errorText
+            });
             res.status(response.status).json({ 
                 error: 'spotify_api_error', 
-                message: errorData.error?.message || 'Failed to fetch playlists from Spotify',
-                spotifyError: errorData.error
+                message: errorData.error?.message || `Spotify API error: ${response.status} ${response.statusText}`,
+                spotifyError: errorData.error,
+                status: response.status
             });
             return;
         }
